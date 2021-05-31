@@ -95,347 +95,57 @@
 %\enlargethispage{12pt}
 
 
-    \section{Approach}
+    \section{Methods}
 
-    Equation~(\ref{eq:01}) Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
-    .....
+    \wfmash\ first applies a locality-sensitive hashing, from MashMap, to rapidly determine syntenic region
+    boundaries between long DNA sequences. Then, a hierarchical implementation of the WFA allows computing the
+    base-level global alignment of the identified mappings.
 
+    \subsection{Approximate mapping}
 
-    \begin{methods}
-        \section{Methods}
+    Each query sequence is broken into non-overlapping pieces of the requested length. These segments are then
+    mapped using MashMap's sliding MinHash mapping algorithm~\citep{30423094}. We extended MashMap, fixing bugs
+    and incorporating the robust winnowing \citep{Schleimer S. et al.  (2003)} in the minimizer downsampling.
+    Robust sampling avoids taking too many minimizers in low-complexity substrings, yielding improvements in
+    runtime and memory-usage without affecting accuracy~\citep{32657365}.
 
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text
-        text\vspace*{1pt}
+    %TODO THINGS ON THE FILTERING?
+    %TODO THING ON THE SPLIT READ AND/OR THE MERGING?
 
-        \begin{itemize}
-            \item for bulleted list, use itemize
-            \item for bulleted list, use itemize
-            \item for bulleted list, use itemize\vspace*{1pt}
-        \end{itemize}
+    In addition to the segment length, the minimum segment estimated identity and the maximum number of
+    mappings to report for each segment can be specified in the mapping process. These settings allow users
+    to precisely define the mapping space to consider, specifying the characteristics of homologies to compute.
+    Each mapping location is then used as a target for base-level alignment using a hierarchical implementation
+    of the WFA.
 
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
+    \subsection{Base-level alignment}
 
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text\vadjust{\newpage}.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
+    The time and memory required to compute the base-level alignment increases quadratically with the sequence
+    length. The WFA provides an efficient way to decrease the amount of computation required to obtain the
+    optimal alignment between two sequences, reducing the cost to be quadratic in the alignment penalty score
+    of the optimal alignment~\citep{32915952}. This means that the algorithm is very efficient in aligning
+    similar homologous sequences (i.e., sequences with a low alignment penalty score), but high divergence
+    genomes and/or noisy long reads can increase its memory and runtime costs.
 
+    To avoid such limitation, wfmash applies a hierarchical WFA, exploiting the WFA to guide the alignment
+    process, but keeping the largest alignment problem size small. Rather than directly aligning the whole
+    sequences, it aligns them to each other in small pieces W-bps long by applying a global WFA alignment
+    (Figure~1\vphantom{\ref{fig:1}}). The whole global alignment is then computed over the full
+    dynamic-programming matrix (high order DP-matrix) at \textit{W}-bps resolution.
+    Each cell in the high order DP-matrix corresponds to the alignment of a specific pair of fragments
+    \textit{W}-bps long from the two sequences to align. To determine if each cell is a match, and then guiding the
+    \textit{W}-bps resolution alignment, the global alignment using the standard WFA is performed between the
+    two fragments.
 
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-
-
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-
-        \subsection{This is subheading}
-
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text
-        text. Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-
-        \subsubsection{This is subsubheading}
-
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-
-
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text\break
-        text text
-
-
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text
-        textText Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-
-        \enlargethispage{6pt}
-
-
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-
-
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-
-
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-
-
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-        Text Text Text Text Text Text Text Text Text Text Text Text Text
-        Text Text Text Text Text Text Text Text.
-        Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-        Text Text Text Text Text Text Text Text Text Text Text.
-        \citealp{Boffelli03} might want to know about text text text text
-
-        \begin{table}[!t]
-            \processtable{This is table caption\label{Tab:01}} {\begin{tabular}{@{}llll@{}}
-                                                                    \toprule head1 &
-                                                                    head2 & head3 & head4 \\\midrule
-                                                                    row1 & row1 & row1 & row1 \\
-                                                                    row2 & row2 & row2 & row2 \\
-                                                                    row3 & row3 & row3 & row3 \\
-                                                                    row4 & row4 & row4 & row4 \\\botrule
-            \end{tabular}}{This is a footnote}
-        \end{table}
-
-    \end{methods}
 
     \begin{figure}[!tpb]%figure1
-        \fboxsep=0pt\colorbox{gray}{\begin{minipage}[t]{235pt}
-                                        \vbox to 100pt{\vfill\hbox to
-                                        235pt{\hfill\fontsize{24pt}{24pt}\selectfont FPO\hfill}\vfill}
-        \end{minipage}}
-%\centerline{\includegraphics{fig01.eps}}
-        \caption{Caption, caption.}\label{fig:01}
+        \fboxsep=0pt\colorbox{gray}{
+            \begin{minipage}[t]{235pt}
+                \vbox to 100pt{\vfill\hbox to
+                235pt{\hfill\fontsize{24pt}{24pt}\selectfont FPO\hfill}\vfill}
+            \end{minipage}}
+            %\centerline{\includegraphics{fig01.eps}}
+        \caption{Generate a cool plot using R as a base to create a cool image.}\label{fig:1}
     \end{figure}
 
 %\begin{figure}[!tpb]%figure2
@@ -443,63 +153,24 @@
 %\caption{Caption, caption.}\label{fig:02}
 %\end{figure}
 
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
+    Finally, the \textit{W}-bps resolution traceback is applied to determine the set of base-level alignments
+    on the optimal path in the high order DP-matrix. During the process, a further step is performed for
+    refining the alignment. Indeed, inaccurate mapping estimation can lead to under-alignment at the beginning
+    and the end of the aligned syntenic region. Therefore, edlib is applied by computing semi-global alignments
+    to resolve the mapping boundaries.
+    The hierarchical implementation requires only the memory to align a syntenic region at \textit{W}-bps resolution,
+    limiting the runtime and the memory of the standard WFA by applying it to fragments \textit{W}-bps long.
+    This approach is more flexible than using a fixed-width band (it effectively has a variable bandwidth), requires
+    no heuristic seeding step, and can benefit from parallel exploration of the wavefront.
+    %TODO 'this approach is more flexible than using a fixed-width band: Not sure about writing it. I would remove it, else we should demonstrate it.
+    %TODO 'and can benefit from parallel exploration of the wavefront.' Can we?
 
-    \subsection{Test1}
+
+
+    \section{Results}
 
     Text Text Text Text Text Text Text Text Text Text Text Text Text
     Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
-
-
-    \section{Discussion}
-
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
-    Text Text Text Text Text Text Text Text Text Text.
-
-
-    Table~\ref{Tab:01} shows that Text Text Text Text Text Text Text
-    Text Text Text Text. Figure~2\vphantom{\ref{fig:02}} shows that
-    the above method Text Text. Text Text Text Text Text Text Text
-    Text Text. Figure~2\vphantom{\ref{fig:02}} shows that the above
-    method Text Text. Text Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -509,60 +180,10 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
-
-
-
-    \section{Conclusion}
-
-    (Table~\ref{Tab:01}) Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-
+    \section{Discussion}
 
     Text Text Text Text Text Text Text Text Text Text Text Text Text
     Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
-
-    \begin{enumerate}
-        \item this is item, use enumerate
-        \item this is item, use enumerate
-        \item this is item, use enumerate
-    \end{enumerate}
-
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows\vadjust{\pagebreak} that the
-    above method Text Text Text Text Text Text Text Text Text Text
-    Text Text.  \citealp{Boffelli03} might want to know about text
-    text text text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text Text Text Text Text Text Text Text Text.
-    \citealp{Boffelli03} might want to know about text text text text
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text\break Text.
-
-
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text.
-    Figure~2\vphantom{\ref{fig:02}} shows that the above method Text
-    Text Text Text\vspace*{-10pt}
-
 
     \section*{Acknowledgements}
 
