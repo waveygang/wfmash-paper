@@ -3,6 +3,7 @@
 \usepackage{relsize} % for Cpp
 \usepackage{xspace} % for Cpp
 
+\newcommand{\wfmash}{wfmash}
 \newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
 \newcommand{\pp}{\Rplus\Rplus}
 \newcommand{\Cpp}{\mbox{C\Rplus\Rplus}\xspace}
@@ -46,13 +47,13 @@
         with the advances in sequencing technologies, new genome assemblies are produced at a high rate, pressing for
         the development of tools able to align sequences of the order of tens of megabases long.
         \\
-        \textbf{Results:} Here we present wfmash, a new gap-affine pairwise aligner designed to align DNA sequences
-        at a whole-chromosome scale. wfmash applies a hierarchical implementation of the wavefront alignment
+        \textbf{Results:} Here we present \wfmash\, a new gap-affine pairwise aligner designed to align DNA sequences
+        at a whole-chromosome scale. \wfmash\ applies a hierarchical implementation of the wavefront alignment
         algorithm to guide the alignment of very long sequences. It scales efficiently to large eukaryotic
         chromosomes, allowing users to perform pairwise alignment of thousands of large genomes using little
         time and memory.
         \\
-        \textbf{Availability:} wfmash is written in \Cpp\ programming language. Source code and user manual are freely available at
+        \textbf{Availability:} \wfmash\ is written in \Cpp\ programming language. Source code and user manual are freely available at
         \href{https://github.com/ekg/wfmash}{https://github.com/ekg/wfmash}.
         \\
         \textbf{Contact:}
@@ -67,14 +68,29 @@
 
     \section{Introduction}
 
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text. Figure~\ref{fig:01}
-    shows that the above method Text Text Text Text Text Text Text
-    Text Text Text Text Text.  \citep{Bag01} wants to know about
-        {\ldots}{\ldots} text follows.
-    \begin{equation}
-        \sum \text{\it x}+ \text{\it y} =\text{\it Z}\label{eq:01}\vspace*{-10pt}
-    \end{equation}
+    Many biological analyses take advantage of aligning DNA sequences, ranging from read~mapping
+    \citep{22388286, BWA_MEM, 23103880} to variant detection~\citep{21478889}, as well as de~novo
+    assembly \citep{19251739} and pangenome building~\citep{33177663, 33066802}. Pairwise sequence alignment
+    can be applied to identify similar regions that may indicate functional, structural, and/or evolutionary
+    relationships between two biological sequences. In this context, pangenomes model the full set
+    of genomic elements in a given species or clade~\citep{32453966}. These data structures encode the mutual
+    relationships between all the genomes represented, in contrast to reference-based approaches which
+    relate sequences to a particular genome, chosen as reference. The unbiased approach allows studying
+    the entire genetic diversity of a population. This opportunity, in combination with the massive amount
+    of data available, made possible thanks to the advancement in sequencing technology, presses for the
+    development of tools able to compute pairwise alignment of very long sequences.
+
+    To face the upcoming challenges in pangenomes building, we have developed \wfmash\, a new gap-affine
+    pairwise tool for aligning DNA sequences at a whole-chromosome scale. It supports split-read alignment
+    and gap-affine penalties for insertion and deletions. \wfmash\ scales efficiently to large eukaryotic
+    chromosomes while requiring little time and memory, making it suitable to be applied on the pairwise
+    alignment of hundreds of genomes. \wfmash\ is a DNA sequence aligner based on the integration of
+    MashMap~\citep{30423094}, a fast approximate aligner for computing local alignment boundaries between
+    long DNA sequences, and the wavefront alignment algorithm (WFA)~\citep{32915952}, an exact gap-affine algorithm
+    that takes advantage of homologous regions between the sequences to accelerate the alignment process.
+
+    %TODO Some sentences of why it exists with respect to Minimap2/Winnomap2, explaining the limitations of those tools in the pairwise alignment task.
+
 
 %\enlargethispage{12pt}
 
