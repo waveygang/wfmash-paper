@@ -144,7 +144,7 @@
                 \vbox to 100pt{\vfill\hbox to
                 235pt{\hfill\fontsize{24pt}{24pt}\selectfont FPO\hfill}\vfill}
             \end{minipage}}
-            %\centerline{\includegraphics{fig01.eps}}
+        %\centerline{\includegraphics{fig01.eps}}
         \caption{Generate a cool plot using R as a base to create a cool image.}\label{fig:1}
     \end{figure}
 
@@ -166,11 +166,51 @@
     %TODO 'and can benefit from parallel exploration of the wavefront.' Can we?
 
 
-
     \section{Results}
 
-    Text Text Text Text Text Text Text Text Text Text Text Text Text
-    Text Text Text Text Text Text Text Text.
+    We evaluated the performance of \wfmash\ 0.xx against Minimap2-v2.20-r1061 {29750242} and Winnomap 2.03 {XXX}, in
+    terms of runtime and memory usage. The comparison was performed on both simulated and real datasets. Simulated
+    data allowed evaluating the alignment quality by calculating precision and recall in variant identification.
+    The evaluations were performed on a workstation running Ubuntu 20.04 equipped with 64 GB of RAM and an Intel i9-9900K
+    CPU with 8 cores (16 threads). All commands are provided in the Supplementary Material.
+
+    \subsection{Simulated data}
+    We simulated long sequences from the \textit{Saccharomyces cerevisiae} chromosome IV (S288C strain) and
+    the telomere-to-telomere (T2T) assemblies of the human chromosomes 8, at different levels of divergence and length
+    (Table 1 and Table 2). Chromosomes were split into shorter sequences using the splitfa tool~\citep{splitfa}. In each
+    run, all sequences have the same length. Single nucleotide variants (SNVs), small indels, and structural
+    variants (SVs) were introduced using the Mutation-Simulator script~\citep{32780803}.
+    %, while structural variants (SVs) were applied using the SURVIVOR benchmarking tool~\citep{28117401}.
+
+    To evaluate the correctness of the alignments, we used the pairwise alignment of the input sequences to build
+    a pangenome graph in each run, and called the variants on the graphs. The graphs were built using~\citep{seqwish}.
+    seqwish implements a lossless conversion from pairwise alignments between sequences to a pangenome graph encoding the
+    sequences and their alignments. We called SNVs, small indels, and SVs using vg deconstruct~\citep{30125266},
+    evaluating the false-negative and false-positive rates (FNR, FPR) using vcfeval~\citep{vcfeval}.
+
+
+    \begin{table}[!t]
+        \processtable{
+            \small
+            Performance of pairwise alignment of long sequences from the \textit{Saccharomyces cerevisiae}
+            chromosome IV.
+            \label{Tab:01}} {
+            \begin{tabular}{@{}llllllll@{}}
+                \toprule Aligner & Divergence & Length & Runtime (mm:ss) & Memory (GB) & Precision & Sensitivity & F-measure \\
+                \midrule
+                row1             & row1       & row1   & row1            & row1        & row1      & row1        & row1      \\
+                row2             & row2       & row2   & row2            & row1        & row1      & row1        & row1      \\
+                row3             & row3       & row3   & row3            & row1        & row1      & row1        & row1      \\
+                row4             & row4       & row4   & row4            & row1        & row1      & row1        & row1      \\
+                \botrule
+            \end{tabular}
+        }
+
+    \end{table}
+
+    \subsection{Real data}
+    % HPRC data time/memory
+    % Histogram of the contig length distribution (supplementary?)
 
 
     \section{Discussion}
