@@ -47,7 +47,7 @@
         with the advances in sequencing technologies, new genome assemblies are produced at a high rate, pressing for
         the development of tools able to align sequences of the order of tens of megabases long.
         \\
-        \textbf{Results:} Here we present \wfmash\, a new gap-affine pairwise aligner designed to align DNA sequences
+        \textbf{Results:} Here we present \wfmash\/, a new gap-affine pairwise aligner designed to align DNA sequences
         at a whole-chromosome scale. \wfmash\ applies a hierarchical implementation of the wavefront alignment
         algorithm to guide the alignment of very long sequences. It scales efficiently to large eukaryotic
         chromosomes, allowing users to perform pairwise alignment of thousands of large genomes using little
@@ -76,11 +76,11 @@
     of genomic elements in a given species or clade~\citep{32453966}. These data structures encode the mutual
     relationships between all the genomes represented, in contrast to reference-based approaches which
     relate sequences to a particular genome, chosen as reference. The unbiased approach allows studying
-    the entire genetic diversity of a population. This opportunity, in combination with the massive amount
-    of data available, made possible thanks to the advancement in sequencing technology, presses for the
+    the entire genetic diversity of a population. FIXME In combination with the massive amount
+    of data available made possible thanks to the advancement in sequencing technology, presses for the
     development of tools able to compute pairwise alignment of very long sequences.
 
-    To face the upcoming challenges in pangenomes building, we have developed \wfmash\, a new gap-affine
+    To face the upcoming challenges in pangenomes building, we have developed \wfmash\/, a new gap-affine
     pairwise tool for aligning DNA sequences at a whole-chromosome scale. It supports split-read alignment
     and gap-affine penalties for insertion and deletions. \wfmash\ scales efficiently to large eukaryotic
     chromosomes while requiring little time and memory, making it suitable to be applied on the pairwise
@@ -104,8 +104,8 @@
     \subsection{Approximate mapping}
 
     Each query sequence is broken into non-overlapping pieces of the requested length. These segments are then
-    mapped using MashMap's sliding MinHash mapping algorithm~\citep{30423094}. We extended MashMap, fixing bugs
-    and incorporating the robust winnowing \citep{Schleimer S. et al.  (2003)} in the minimizer downsampling.
+    mapped using MashMap's sliding MinHash mapping algorithm~\citep{30423094}. We extended MashMap, incorporating
+    the robust winnowing~\citep{Schleimer S. et al. (2003)} in the minimizer downsampling.
     Robust sampling avoids taking too many minimizers in low-complexity substrings, yielding improvements in
     runtime and memory-usage without affecting accuracy~\citep{32657365}.
 
@@ -129,7 +129,7 @@
 
     To avoid such limitation, wfmash applies a hierarchical WFA, exploiting the WFA to guide the alignment
     process, but keeping the largest alignment problem size small. Rather than directly aligning the whole
-    sequences, it aligns them to each other in small pieces W-bps long by applying a global WFA alignment
+    sequences, it aligns them to each other in small pieces \textit{W}-bps long by applying a global WFA alignment
     (Figure~1\vphantom{\ref{fig:1}}). The whole global alignment is then computed over the full
     dynamic-programming matrix (high order DP-matrix) at \textit{W}-bps resolution.
     Each cell in the high order DP-matrix corresponds to the alignment of a specific pair of fragments
@@ -158,17 +158,18 @@
     refining the alignment. Indeed, inaccurate mapping estimation can lead to under-alignment at the beginning
     and the end of the aligned syntenic region. Therefore, edlib is applied by computing semi-global alignments
     to resolve the mapping boundaries.
+
     The hierarchical implementation requires only the memory to align a syntenic region at \textit{W}-bps resolution,
     limiting the runtime and the memory of the standard WFA by applying it to fragments \textit{W}-bps long.
-    This approach is more flexible than using a fixed-width band (it effectively has a variable bandwidth), requires
-    no heuristic seeding step, and can benefit from parallel exploration of the wavefront.
+    This approach is more FIXME flexible than using a fixed-width band (it effectively has a variable bandwidth), requires
+    no heuristic seeding step, and FIXME can benefit from parallel exploration of the wavefront.
     %TODO 'this approach is more flexible than using a fixed-width band: Not sure about writing it. I would remove it, else we should demonstrate it.
     %TODO 'and can benefit from parallel exploration of the wavefront.' Can we?
 
 
     \section{Results}
 
-    We evaluated the performance of \wfmash\ 0.xx against Minimap2-v2.20-r1061 {29750242} and Winnomap 2.03 {XXX}, in
+    We evaluated the performance of \wfmash\ 0.xx against Minimap2-v2.20-r1061 \citep{29750242} and Winnomap 2.03 \citep{XXX}, in
     terms of runtime and memory usage. The comparison was performed on both simulated and real datasets. Simulated
     data allowed evaluating the alignment quality by calculating precision and recall in variant identification.
     The evaluations were performed on a workstation running Ubuntu 20.04 equipped with 64 GB of RAM and an Intel i9-9900K
@@ -177,16 +178,17 @@
     \subsection{Simulated data}
     We simulated long sequences from the \textit{Saccharomyces cerevisiae} chromosome IV (S288C strain) and
     the telomere-to-telomere (T2T) assemblies of the human chromosomes 8, at different levels of divergence and length
-    (Table 1 and Table 2). Chromosomes were split into shorter sequences using the splitfa tool~\citep{splitfa}. In each
-    run, all sequences have the same length. Single nucleotide variants (SNVs), small indels, and structural
-    variants (SVs) were introduced using the Mutation-Simulator script~\citep{32780803}.
+    (Table 1 and Table 2). Chromosomes were split into shorter sequences using the splitfa tool~\citep{splitfa},
+    In each run, all sequences have the same length, with 50\% of them in reverse complement.
+    Single nucleotide variants~(SNVs), small indels, and structural variants~(SVs) were introduced using the
+    Mutation-Simulator script~\citep{32780803}.
     %, while structural variants (SVs) were applied using the SURVIVOR benchmarking tool~\citep{28117401}.
 
     To evaluate the correctness of the alignments, we used the pairwise alignment of the input sequences to build
-    a pangenome graph in each run, and called the variants on the graphs. The graphs were built using~\citep{seqwish}.
+    a pangenome graph in each run, identifying the variants embedded in the graphs. The graphs were built using~\citep{seqwish}.
     seqwish implements a lossless conversion from pairwise alignments between sequences to a pangenome graph encoding the
     sequences and their alignments. We called SNVs, small indels, and SVs using vg deconstruct~\citep{30125266},
-    evaluating the false-negative and false-positive rates (FNR, FPR) using vcfeval~\citep{vcfeval}.
+    evaluating the false-negative and false-positive rates using vcfeval~\citep{vcfeval}.
 
 
     \begin{table}[!t]
@@ -208,6 +210,12 @@
 
     \end{table}
 
+    % TODO 7 Mbp beta-defensin locus (chr8: 6,300,000-13,300,000)
+
+    % TODO Centromere (chr8:42,881,543-47,029,467)
+
+    % TODO Simulation with full chromosomes
+
     \subsection{Real data}
     % HPRC data time/memory
     % Histogram of the contig length distribution (supplementary?)
@@ -215,7 +223,7 @@
 
     \section{Discussion}
 
-    We implemented a novel gap-affine pairwise aligner, \wfmash\, to accelerate the computation of the mutual
+    We implemented a novel gap-affine pairwise aligner, \wfmash\/, to accelerate the computation of the mutual
     alignment of collections of genomes, a step required for building pangenome models. We have demonstrated that
     it efficiently performs with contigs representing full human chromosomes of 88 phased haplotypes from the
     Human Pangenome Reference Consortium year 1 assembly. Indeed, thanks to its efficiency, wfmash is already
