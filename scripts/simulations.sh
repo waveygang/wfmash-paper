@@ -27,15 +27,15 @@ run_meryl=~/git/Winnowmap/bin/meryl
 # Input
 assembly='CHM13_v1.1'
 species='Homo sapiens'
-path_input_fasta=chr8_b_def.fa
-path_input_sdf=chr8_b_def
+path_input_fasta=chr20.fa
+path_input_sdf=chr20.sdf
 
 
 # Variables
 header_input_fasta=$(grep '>' $path_input_fasta | sed 's/>//g')
 name_input_fasta=$(basename $path_input_fasta .fa)
 len_input_fasta=$(cut $path_input_fasta.fai -f2)
-threads=16
+threads=14
 
 divergences=(
 #  0.001
@@ -47,25 +47,25 @@ divergences=(
 
 presets=(
   'asm5'
-  'asm10'
-  'asm20'
+#  'asm10'
+#  'asm20'
 )
 
 lengths=(
 	#200000
 	#500000
-	#1000000
+	1000000
 	#5000000
 	#30000000
 	#70000000
-	150000000
+	#150000000
 )
 
 samples=({A..C})
 
 
 # Mutated chromosome generation (SNVs + small INDELs)
-variant_block=2
+variant_block=5
 
 mkdir -p chromosomes
 for index in ${!divergences[*]};
@@ -75,12 +75,21 @@ do
 
 	# SNV/INDEL ratio = 9
 	snv_rate=$(echo "$divergence * 2 * 0.9" | bc -l)
-	ins_rate=$(echo "$divergence * 2 * 0.05" | bc -l)
-	del_rate=$(echo "$divergence * 2 * 0.05" | bc -l)
+	ins_rate=$(echo "$divergence * 2 * 0.00005" | bc -l)
+	del_rate=$(echo "$divergence * 2 * 0.00005" | bc -l)
 
+	name_output_pre=${name_input_fasta}_${divergence}_pre
+	prefix_mutations_vcf_pre=chromosomes/$name_output_pre
+	python3 $path_mutation_simulator_py $path_input_fasta --output $prefix_mutations_vcf_pre args --snp $snv_rate -titv 2 --insert $ins_rate --snpblock $variant_block --insertlength 2000 --insertblock $variant_block --deletion $del_rate --deletionlength 2000 --deletionblock $variant_block --assembly $assembly --species "$species" --sample ${name_input_fasta}_mt
+
+  # Remove invalid variants (REF == ALT, in case on Ns in the reference)
 	name_output=${name_input_fasta}_$divergence
+	path_mutations_vcf=chromosomes/$name_output.vcf
 
-	python3 $path_mutation_simulator_py $path_input_fasta --output chromosomes/$name_output args --snp $snv_rate -titv 2 --insert $ins_rate --snpblock $variant_block --insertlength 2 --insertblock $variant_block --deletion $del_rate --deletionlength 2 --deletionblock $variant_block --assembly $assembly --species "$species" --sample ${name_input_fasta}_mt
+  cat <(grep '^#' $prefix_mutations_vcf_pre.vcf) <(grep '^#' $prefix_mutations_vcf_pre.vcf -v | awk '{if ($4 != $5){print$0}}') > $path_mutations_vcf
+
+  rm $prefix_mutations_vcf_pre.vcf
+  mv chromosomes/$name_output_pre.fa chromosomes/$name_output.fa
 done
 
 
@@ -134,18 +143,6 @@ zgrep '^>' seqs/*.fa.gz -c
 # Alignments
 num_haplotypes=${#samples[@]}
 
-#wfmash
-mkdir -p alignments/wfmash
-for index in ${!divergences[*]};
-do
-	divergence=${divergences[$index]}
-	identity=$(echo "(1-$divergence) * 100 - 1" | bc -l)
-
-	name_input_mt_fasta=${name_input_fasta}_$divergence.fa
-
-	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_input_fa_gz=seqs/${name_input_fasta}+samples_$divergence.l${len}.fa.gz; path_paf=alignments/wfmash/${name_input_fasta}+samples_$divergence.l${len}.paf; echo $path_paf; \time -v wfmash $path_input_fa_gz $path_input_fa_gz -t $threads -s 50000 -l 0 -p $identity -X -N -n $num_haplotypes 2>> alignments/wfmash/wfmash.log > $path_paf; done;
-done
-
 
 #minimap2
 mkdir -p alignments/minimap2
@@ -156,7 +153,7 @@ do
 
 	name_input_mt_fasta=${name_input_fasta}_$divergence.fa
 
-	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_input_fa_gz=seqs/${name_input_fasta}+samples_$divergence.l${len}.fa.gz; path_paf=alignments/minimap2/${name_input_fasta}+samples_$divergence.l${len}.drop0.paf; echo $path_paf; \time -v minimap2 $path_input_fa_gz $path_input_fa_gz -t $threads -c -x $preset -X 2>> alignments/minimap2/minimap2.log > $path_paf; for l in 30000 40000; do cat $path_paf | fpa drop -l $l > alignments/minimap2/${name_input_fasta}+samples_$divergence.l${len}.drop$l.paf; done; done;
+	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_input_fa_gz=seqs/${name_input_fasta}+samples_$divergence.l${len}.fa.gz; path_paf=alignments/minimap2/${name_input_fasta}+samples_$divergence.l${len}.drop0.paf; echo $path_paf; \time -v minimap2 $path_input_fa_gz $path_input_fa_gz -t $threads -c -x $preset -X 2>> alignments/minimap2/minimap2.log > $path_paf; for l in 100000 400000 800000; do cat $path_paf | fpa drop -l $l > alignments/minimap2/${name_input_fasta}+samples_$divergence.l${len}.drop$l.paf; done; done;
 done
 
 #winnomap2
@@ -172,8 +169,21 @@ do
 
 	name_input_mt_fasta=${name_input_fasta}_$divergence.fa
 
-	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_input_fa_gz=seqs/${name_input_fasta}+samples_$divergence.l${len}.fa.gz; path_paf=alignments/winnomap2/${name_input_fasta}+samples_$divergence.l${len}.drop0.paf; echo $path_paf; \time -v $run_winnomap2 -W ${name_input_fasta}.repetitive_k19.txt $path_input_fa_gz $path_input_fa_gz -t $threads -c -x $preset -X 2>> alignments/winnomap2/winnomap2.log > $path_paf; for l in 30000 40000; do cat $path_paf | fpa drop -l $l > alignments/winnomap2/${name_input_fasta}+samples_$divergence.l${len}.drop$l.paf; done; done;
+	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_input_fa_gz=seqs/${name_input_fasta}+samples_$divergence.l${len}.fa.gz; path_paf=alignments/winnomap2/${name_input_fasta}+samples_$divergence.l${len}.drop0.paf; echo $path_paf; \time -v $run_winnomap2 -W ${name_input_fasta}.repetitive_k19.txt $path_input_fa_gz $path_input_fa_gz -t $threads -c -x $preset -X 2>> alignments/winnomap2/winnomap2.log > $path_paf; for l in 100000 400000 800000; do cat $path_paf | fpa drop -l $l > alignments/winnomap2/${name_input_fasta}+samples_$divergence.l${len}.drop$l.paf; done; done;
 done
+
+#wfmash
+mkdir -p alignments/wfmash
+for index in ${!divergences[*]};
+do
+	divergence=${divergences[$index]}
+	identity=$(echo "(1-$divergence) * 100 - 1" | bc -l)
+
+	name_input_mt_fasta=${name_input_fasta}_$divergence.fa
+
+	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_input_fa_gz=seqs/${name_input_fasta}+samples_$divergence.l${len}.fa.gz; path_paf=alignments/wfmash/${name_input_fasta}+samples_$divergence.l${len}.paf; echo $path_paf; \time -v wfmash $path_input_fa_gz $path_input_fa_gz -t $threads -s 200000 -l 800000 -p $identity -X -n $num_haplotypes 2>> alignments/wfmash/wfmash.log > $path_paf; done;
+done
+
 
 # Check
 grep 'Elapsed (wall clock)' alignments/*/*log
@@ -193,7 +203,7 @@ do
 
 	for aligner in wfmash; do mkdir -p graphs/$aligner; for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_input_fa_gz=seqs/${name_input_fasta}+samples_$divergence.l${len}.fa.gz; path_input_paf=alignments/$aligner/${name_input_fasta}+samples_$divergence.l${len}.paf; path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.gfa; echo $path_gfa; seqwish -t $threads -s $path_input_fa_gz -p $path_input_paf -k 0 -g $path_gfa -B 9000000000; done; done;
 
-	for aligner in minimap2 winnomap2; do mkdir -p graphs/$aligner; for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_input_fa_gz=seqs/${name_input_fasta}+samples_$divergence.l${len}.fa.gz; for l in 0 30000 40000; do path_input_paf=alignments/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.paf; path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.gfa; echo $path_gfa; seqwish -t $threads -s $path_input_fa_gz -p $path_input_paf -k 0 -g $path_gfa -B 1000000000; done; done; done;
+	#for aligner in minimap2 winnomap2; do mkdir -p graphs/$aligner; for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_input_fa_gz=seqs/${name_input_fasta}+samples_$divergence.l${len}.fa.gz; for l in 0 100000 400000 800000; do path_input_paf=alignments/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.paf; path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.gfa; echo $path_gfa; seqwish -t $threads -s $path_input_fa_gz -p $path_input_paf -k 0 -g $path_gfa -B 1000000000; done; done; done;
 done
 
 
@@ -210,7 +220,7 @@ do
 
 	for aligner in wfmash; do mkdir -p variants/$aligner; for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.gfa; path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.vcf.gz; echo $path_vcf_gz; vg deconstruct -e -a -p $header_input_fasta -A sampleA#$header_input_fasta $path_gfa -t $threads | sed 's/#$header_input_fasta:/#${header_input_fasta}_/g' | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz; done; done;
 
-	for aligner in minimap2 winnomap2; do mkdir -p variants/$aligner; for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; for l in 0 30000 40000; do path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.gfa; path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.vcf.gz; echo $path_vcf_gz; vg deconstruct -e -a -p $header_input_fasta -A sampleA#$header_input_fasta $path_gfa -t $threads | sed 's/#$header_input_fasta:/#${header_input_fasta}_/g' | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz; done; done; done;
+	#for aligner in minimap2 winnomap2; do mkdir -p variants/$aligner; for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; for l in 0 100000 400000 800000; do path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.gfa; path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.vcf.gz; echo $path_vcf_gz; vg deconstruct -e -a -p $header_input_fasta -A sampleA#$header_input_fasta $path_gfa -t $threads | sed 's/#$header_input_fasta:/#${header_input_fasta}_/g' | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz; done; done; done;
 done
 
 
@@ -227,7 +237,7 @@ do
 
 	for aligner in wfmash; do mkdir -p variants/$aligner; for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.vcf.gz; for index_s in ${!samples[*]}; do sample=${samples[$index_s]}; samplename=sample$sample; path_truth_mut_vcf_gz=samples/$name_output.$samplename.vcf.gz; $run_rtg vcfeval -b $path_truth_mut_vcf_gz -c $path_vcf_gz -t $path_input_sdf --sample "$samplename,$samplename#$header_input_fasta" -o evaluations/$aligner/${name_output}_$samplename.l${len}; done; done; done;
 
-	for aligner in minimap2 winnomap2; do mkdir -p variants/$aligner; for idx_len in ${!lengths[*]}; do for l in 0 30000 40000; do len=${lengths[$idx_len]}; path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.vcf.gz; for index_s in ${!samples[*]}; do sample=${samples[$index_s]}; samplename=sample$sample; path_truth_mut_vcf_gz=samples/$name_output.$samplename.vcf.gz; $run_rtg vcfeval -b $path_truth_mut_vcf_gz -c $path_vcf_gz -t $path_input_sdf --sample "$samplename,$samplename#$header_input_fasta" -o evaluations/$aligner/${name_output}_$samplename.l${len}.drop$l; done; done; done; done;
+	#for aligner in minimap2 winnomap2; do mkdir -p variants/$aligner; for idx_len in ${!lengths[*]}; do for l in 0 100000 400000 800000; do len=${lengths[$idx_len]}; path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.vcf.gz; for index_s in ${!samples[*]}; do sample=${samples[$index_s]}; samplename=sample$sample; path_truth_mut_vcf_gz=samples/$name_output.$samplename.vcf.gz; $run_rtg vcfeval -b $path_truth_mut_vcf_gz -c $path_vcf_gz -t $path_input_sdf --sample "$samplename,$samplename#$header_input_fasta" -o evaluations/$aligner/${name_output}_$samplename.l${len}.drop$l; done; done; done; done;
 done
 
 # Check sampleA
