@@ -35,7 +35,7 @@ path_input_sdf=chr20.sdf
 header_input_fasta=$(grep '>' $path_input_fasta | sed 's/>//g')
 name_input_fasta=$(basename $path_input_fasta .fa)
 len_input_fasta=$(cut $path_input_fasta.fai -f2)
-threads=14
+threads=16
 
 divergences=(
 #  0.001
@@ -120,7 +120,6 @@ do
 	done
 done
 
-
 # Assemblies generation
 mkdir -p seqs
 
@@ -134,7 +133,7 @@ do
 
 	base_output=${name_input_fasta}+samples_$divergence
 
-	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; cat $path_input_fasta <($run_splitfa $path_input_mt_fasta -l $len-$len -s 1 2> seqs/samples_$divergence.l${len}.paf) | pigz -c > seqs/$base_output.l${len}.fa.gz; sed 's/sample.#chr8_b_def\t/chr8_b_def\t/g' seqs/samples_$divergence.l${len}.paf -i; done;
+	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; cat $path_input_fasta <($run_splitfa $path_input_mt_fasta -l $len-$len -s 1 2> seqs/samples_$divergence.l${len}.paf | perl ~/git/wfmash-paper/scripts/split_contigs.perl -) | bgzip -@ $threads -c > seqs/$base_output.l${len}.fa.gz; samtools faidx seqs/$base_output.l${len}.fa.gz; sed 's/sample.#chr8_b_def\t/chr8_b_def\t/g' seqs/samples_$divergence.l${len}.paf -i; done;
 done
 
 # Check
@@ -181,7 +180,7 @@ do
 
 	name_input_mt_fasta=${name_input_fasta}_$divergence.fa
 
-	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_input_fa_gz=seqs/${name_input_fasta}+samples_$divergence.l${len}.fa.gz; path_paf=alignments/wfmash/${name_input_fasta}+samples_$divergence.l${len}.paf; echo $path_paf; \time -v wfmash $path_input_fa_gz $path_input_fa_gz -t $threads -s 200000 -l 800000 -p $identity -X -n $num_haplotypes 2>> alignments/wfmash/wfmash.log > $path_paf; done;
+	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; path_input_fa_gz=seqs/${name_input_fasta}+samples_$divergence.l${len}.fa.gz; path_paf=alignments/wfmash/${name_input_fasta}+samples_$divergence.l${len}.paf; echo $path_paf; \time -v wfmash $path_input_fa_gz $path_input_fa_gz -t $threads -s 100k -l 300k -p $identity -X -n $num_haplotypes 2>> alignments/wfmash/wfmash.log > $path_paf; done;
 done
 
 
