@@ -51,7 +51,7 @@ path_complete_busco_genes_target=busco_genes/"$target"/$target.busco_genes.compl
 total_genes_in_query=$(cat $path_complete_busco_genes_query | wc -l)
 total_genes_in_target=$(cat $path_complete_busco_genes_target | wc -l)
 
-echo query target total_genes_in_query total_genes_in_target s l p missing_gene_ratio_query missing_gene_ratio_target missing_genes_in_query missing_genes_in_target | tr ' ' '\t' >> search.tsv
+echo query target total_genes_in_query total_genes_in_target s l p present_gene_ratio_query present_gene_ratio_target missing_genes_in_query missing_genes_in_target | tr ' ' '\t' >> search.tsv
 for s in 50k 100k 150k 200k 250k 300k 350k 400k 450k 500k 600k 700k 800k 900k 1M
 do
   l=$s
