@@ -67,8 +67,8 @@ do
         wfmash genomes/${target}_genomic.fna.gz genomes/${query}_genomic.fna.gz -t $num_threads -s $s -l $l -p $p -w $w -m >mappings/$prefix.approx.paf
       fi
 
-      cat mappings/$prefix.approx.paf | awk -v OFS='\t' '{print $1, $3, $4, "", "", "+"}' >mappings/$prefix.approx.$query.bed
-      cat mappings/$prefix.approx.paf | awk -v OFS='\t' '{print $6, $8, $9, "", "", $5}' >mappings/$prefix.approx.$target.bed
+      cat mappings/$prefix.approx.paf | awk -v OFS='\t' '{print $1, $3, $4, "", "", $5}' >mappings/$prefix.approx.$query.bed
+      cat mappings/$prefix.approx.paf | awk -v OFS='\t' '{print $6, $8, $9, "", "", "+"}' >mappings/$prefix.approx.$target.bed
 
       # Number of complete BUSCO genes not entirely covered
       missing_genes_in_query=$(bedtools subtract -a $path_complete_busco_genes_query -b mappings/$prefix.approx.$query.bed | cut -f 4 | sort | uniq | wc -l)
