@@ -36,7 +36,8 @@ tar -xvzf vertebrata_odb10.2021-02-19.tar.gz && rm vertebrata_odb10.2021-02-19.t
 #git clone --recursive https://gitlab.com/genenetwork/guix-bioinformatics.git
 #cd guix-bioinformatics
 #GUIX_PACKAGE_PATH=. guix install busco
-ls /lizardfs/guarracino/vgp/45_fish/genomes/*.fna | while read path_genome; do name_genome="$(basename "$path_genome")" && sbatch -p lowmem -c 48 --wrap 'mkdir /lizardfs/guarracino/vgp/45_fish/busco_genes/'"$name_genome"' && cd /lizardfs/guarracino/vgp/45_fish/busco_genes/'"$name_genome"' && busco -i '"$path_genome"' --lineage_dataset /lizardfs/guarracino/vgp/45_fish/busco_genes/vertebrata_odb10 -o output --mode genome --cpu 48 --offline --metaeuk_parameters="--remove-tmp-files=1" --metaeuk_rerun_parameters="--remove-tmp-files=1" '; done
+sbatch -p lowmem -c 48 --wrap 'cd /lizardfs/guarracino/vgp/45_fish/busco_genes/ && ls /lizardfs/guarracino/vgp/45_fish/genomes/*.fna | while read path_genome; do name_genome="$(basename "$path_genome")" && busco -i $path_genome --lineage_dataset /lizardfs/guarracino/vgp/45_fish/busco_genes/vertebrata_odb10 -o output_$name_genome --mode genome --cpu 48 --offline --metaeuk_parameters="--remove-tmp-files=1" --metaeuk_rerun_parameters="--remove-tmp-files=1" ; done'
+
 
 # ToDo Cleaning and directory renaming
 
