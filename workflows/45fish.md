@@ -1,56 +1,100 @@
+# 45 fish
+
+```
+(echo pggb wfmash seqwish smoothxg odgi gfaffix | tr ' ' '\n') | while read tool; do ls -l $(which $tool); done | cut -f 13 -d ' '
+
+ToDo
+```
+
+Create the main folder:
+
+```
 mkdir -p /lizardfs/guarracino/vgp/45_fish
 cd /lizardfs/guarracino/vgp/45_fish
+```
 
-# Put in /lizardfs/guarracino/vgp/45_fish the 45_fish_alignment.fixed.xlsx file
-# In the original file (45_fish_alignment.xlsx) there were swapped IDs
+### Obtain and explore the genomes
 
-# Put in /lizardfs/guarracino/vgp/45_fish the 45_fish_alignment.download.py file
+Put in `/lizardfs/guarracino/vgp/45_fish` the `45_fish_alignment.fixed.xlsx` file.
+In the original file (`45_fish_alignment.xlsx`) there were swapped IDs.
+
+Put in `/lizardfs/guarracino/vgp/45_fish` the `45_fish_alignment.download.py` file.
+
+```
 python3 45_fish_alignment.download.py 45_fish_alignment.fixed.xlsx genomes
 
 # Decompress genomes
 cd /lizardfs/guarracino/vgp/45_fish/genomes
 ls /lizardfs/guarracino/vgp/45_fish/genomes/*.fna.gz | while read f; do gunzip $f; done
+```
 
-# Compute mash distances
+Compute the mash distances:
+
+```
 # guix install mash
+
 cd /lizardfs/guarracino/vgp/45_fish/genomes
 ls *.fna | while read f; do mash sketch $f; done
 mash triangle *.fna >45_fish_alignment.mash_triangle.txt
+```
 
-# Use the mash_triangle_heatmap.R to produce a heatmap for the 45_fish_alignment.mash_triangle.txt file
+Check the nucleotide composition:
 
-# Check nucleotide composition
+```
 # https://github.com/lh3/seqtk/issues/47
 # guix install seqtk
+
 ls *.fna | while read f; do seqtk comp $f; done
+```
+Use the `mash_triangle_heatmap.R` to produce a heatmap for the `45_fish_alignment.mash_triangle.txt` file
 
-# Get BUSCO genes (busco doesn't work on /scratch)
+### Obtain BUSCO genes
+
+```
 mkdir /lizardfs/guarracino/vgp/45_fish/busco_genes/
-
-# ... prepare the vertebrata_odb10 database
 cd /lizardfs/guarracino/vgp/45_fish/busco_genes/
+```
+
+Prepare the `vertebrata_odb10` database:
+
+```
 wget -c https://busco-data.ezlab.org/v5/data/lineages/vertebrata_odb10.2021-02-19.tar.gz
 tar -xvzf vertebrata_odb10.2021-02-19.tar.gz && rm vertebrata_odb10.2021-02-19.tar.gz
+```
 
-# ... identify BUSCO genes on each genome
+Identify BUSCO genes in each genome:
+
+```
 #git clone --recursive https://gitlab.com/genenetwork/guix-bioinformatics.git
 #cd guix-bioinformatics
 #GUIX_PACKAGE_PATH=. guix install busco
-sbatch -p lowmem -c 48 --wrap 'cd /lizardfs/guarracino/vgp/45_fish/busco_genes/ && ls /lizardfs/guarracino/vgp/45_fish/genomes/*.fna | while read path_genome; do name_genome="$(basename "$path_genome")" && busco -i $path_genome --lineage_dataset /lizardfs/guarracino/vgp/45_fish/busco_genes/vertebrata_odb10 -o output_$name_genome --mode genome --cpu 48 --offline --metaeuk_parameters="--remove-tmp-files=1" --metaeuk_rerun_parameters="--remove-tmp-files=1" ; done'
 
+sbatch -p lowmem -c 48 --wrap 'cd /lizardfs/guarracino/vgp/45_fish/busco_genes/ && ls /lizardfs/guarracino/vgp/45_fish/genomes/*.fna | while read path_genome; do name_genome="$(basename "$path_genome")"; if [[ ! -s /lizardfs/guarracino/vgp/45_fish/busco_genes/output_$name_genome/run_vertebrata_odb10/short_summary.txt ]]; then busco -i $path_genome --lineage_dataset /lizardfs/guarracino/vgp/45_fish/busco_genes/vertebrata_odb10 -o output_$name_genome --mode genome --cpu 48 --offline --metaeuk_parameters="--remove-tmp-files=1" --metaeuk_rerun_parameters="--remove-tmp-files=1"; fi; done'
 
+# `busco` doesn't work on /scratch
+#ls /lizardfs/guarracino/vgp/45_fish/genomes/*.fna | while read path_genome; do name_genome="$(basename "$path_genome")"; sbatch -p lowmem -c 48 --wrap 'cd /scratch && busco -i '"$path_genome"' --lineage_dataset /lizardfs/guarracino/vgp/45_fish/busco_genes/vertebrata_odb10 -o '"$name_genome"' --mode genome --cpu 48 --offline --augustus && mv '"$name_genome"' /lizardfs/guarracino/vgp/45_fish/busco_genes/ '; done
+
+# `augustus_specie` doesn't work
+busco -i /lizardfs/guarracino/vgp/45_fish/genomes/GCA_007364275.2_fArcCen1_genomic.fna --lineage_dataset /lizardfs/guarracino/vgp/45_fish/busco_genes/vertebrata_odb10 -o xxx --mode genome --cpu 48 --offline --augustus_specie fish
+```
 # ToDo Cleaning and directory renaming
 
-# Prepare BED files for the completely identified BUSCO genes
+
+Prepare BED files for the completely identified BUSCO genes:
 # ToDo on Octopus
+
+```
 cd /lizardfs/guarracino/vgp/45_fish/busco_genes/
 ls */full_table.tsv | while read f; do
-  dir_parent=$(dirname "$f")
-  grep Complete "$f" | awk -v OFS='\t' '{print $3, $4, $5, $1, $7, $6}' >"$dir_parent"/$dir_parent.busco_genes.complete.bed
+dir_parent=$(dirname "$f")
+grep Complete "$f" | awk -v OFS='\t' '{print $3, $4, $5, $1, $7, $6}' >"$dir_parent"/$dir_parent.busco_genes.complete.bed
 done
 cd /lizardfs/guarracino/vgp/45_fish
+```
 
-# Mapping and evaluate
+
+### Mapping evaluation
+```
 mkdir /lizardfs/guarracino/vgp/45_fish/mappings
 
 query=GCA_904848185.1_fAcaLat1.1
@@ -89,7 +133,14 @@ for s in 20k 50k 100k 150k 200k 250k 300k 350k 400k 450k 500k 600k 700k 800k 900
     done
   done
 done
+```
+
+
+
+# ???
+```
 
 sbatch -p 1tbmem -c 48 --wrap 'cd /scratch && \time -v /home/guarracino/wfmash/build/bin/wfmash /lizardfs/guarracino/vgp/45_fish/genomes/GCA_900880675.2_fSpaAur1.2_genomic.fna.gz /lizardfs/guarracino/vgp/45_fish/genomes/GCA_904848185.1_fAcaLat1.1_genomic.fna.gz -t 48 -s 50k -l 50k -p 70 -i /lizardfs/guarracino/vgp/45_fish/GCA_904848185.1_fAcaLat1.1-GCA_900880675.2_fSpaAur1.2.s50k.l50k.p70.approx.paf > GCA_904848185.1_fAcaLat1.1-GCA_900880675.2_fSpaAur1.2.s50k.l50k.p70.paf && mv GCA_904848185.1_fAcaLat1.1-GCA_900880675.2_fSpaAur1.2.s50k.l50k.p70.paf /lizardfs/guarracino/vgp/45_fish/'
 
 seq 0 30 | while read i; do sbatch -p lowmem -c 30 --wrap 'cd /scratch && \time -v /home/guarracino/wfmash/build/bin/wfmash /lizardfs/guarracino/vgp/45_fish/genomes/GCA_900880675.2_fSpaAur1.2_genomic.fna.gz /lizardfs/guarracino/vgp/45_fish/genomes/GCA_904848185.1_fAcaLat1.1_genomic.fna.gz -t 30 -s 50k -l 50k -p 70 -i /lizardfs/guarracino/vgp/45_fish/GCA_904848185.1_fAcaLat1.1-GCA_900880675.2_fSpaAur1.2.s50k.l50k.p70.approx.paf.chunk_'$i' > GCA_904848185.1_fAcaLat1.1-GCA_900880675.2_fSpaAur1.2.s50k.l50k.p70.chunk_'$i'.paf'; done
+```
