@@ -70,7 +70,7 @@ path_gencode_genes_target=gencode.v38.annotation.genes.bed
 # Number of GENCODE genes in the target
 total_genes_in_target=$(cat $path_gencode_genes_target | wc -l)
 
-echo query target total_genes_in_target s l p w present_gene_ratio_target missing_genes_in_target | tr ' ' '\t' >gencode_evaluation.mapping.tsv
+echo query target total_genes_in_target s l p n w present_gene_ratio_target missing_genes_in_target | tr ' ' '\t' >gencode_evaluation.mapping.tsv
 for p in 99 98 95 90 85; do
     for s in 2M 1M 900k 800k 700k 600k 500k 450k 400k 350k 300k 250k 200k 150k 100k 50k 20k 10k; do
         l=0
@@ -87,7 +87,7 @@ for p in 99 98 95 90 85; do
             
                     missing_gene_ratio_target=$(echo "scale=4; 1 - $missing_genes_in_target / $total_genes_in_target" | bc)
             
-                    echo $query $target $total_genes_in_target $s $l $p $w $missing_gene_ratio_target $missing_genes_in_target | tr ' ' '\t' >>gencode_evaluation.mapping.tsv
+                    echo $query $target $total_genes_in_target $s $l $p $n $w $missing_gene_ratio_target $missing_genes_in_target | tr ' ' '\t' >>gencode_evaluation.mapping.tsv
                 fi
             done
       done
