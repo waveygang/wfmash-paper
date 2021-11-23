@@ -47,17 +47,17 @@ query=chm13.fa
 target=grch38.fa
 
 for p in 99 98 95 90 85; do
-    for n in 1 5 10 20 50 100 200 500 1000; do
-        for s in 10k 20k 50k 100k 150k 200k 250k 300k 350k 400k 450k 500k 600k 700k 800k 900k 1M 2M; do
+    for s in 2M 1M 900k 800k 700k 600k 500k 450k 400k 350k 300k 250k 200k 150k 100k 50k 20k 10k; do
         l=0
-        for w in 0; do
-            prefix=$query-$target.s$s.l$l.p$p.n$n.w$w
-    
-            if [ ! -f mappings/$prefix.approx.paf ]; then
-                sbatch -p lowmem -c 48 --wrap '/gnu/store/nkfg1wg76zqaig43qgslkwcag9rb9fzz-wfmash-0.6.0+e9a5b02-17/bin/wfmash genomes/'${target}' genomes/'${query}' -t 48 -s '$s' -l '$l' -p '$p' -n '$n' -w '$w' -m >mappings/'$prefix'.approx.paf'
-            fi
+        for n in 1 5 10 20 50 100 200 500 1000; do
+            for w in 0; do
+                prefix=$query-$target.s$s.l$l.p$p.n$n.w$w
+        
+                if [ ! -f mappings/$prefix.approx.paf ]; then
+                    sbatch -p lowmem -c 48 --wrap '\time -v /gnu/store/nkfg1wg76zqaig43qgslkwcag9rb9fzz-wfmash-0.6.0+e9a5b02-17/bin/wfmash genomes/'${target}' genomes/'${query}' -t 48 -s '$s' -l '$l' -p '$p' -n '$n' -w '$w' -m >mappings/'$prefix'.approx.paf'
+                fi
+            done
         done
-      done
     done
 done
 ```
@@ -72,24 +72,24 @@ total_genes_in_target=$(cat $path_gencode_genes_target | wc -l)
 
 echo query target total_genes_in_target s l p w present_gene_ratio_target missing_genes_in_target | tr ' ' '\t' >gencode_evaluation.mapping.tsv
 for p in 99 98 95 90 85; do
-    for n in 1 5 10 20 50 100 200 500 1000; do
-        for s in 10k 20k 50k 100k 150k 200k 250k 300k 350k 400k 450k 500k 600k 700k 800k 900k 1M 2M; do
+    for s in 2M 1M 900k 800k 700k 600k 500k 450k 400k 350k 300k 250k 200k 150k 100k 50k 20k 10k; do
         l=0
-        for w in 0; do
-            prefix=$query-$target.s$s.l$l.p$p.n$n.w$w
-    
-            if [ -f mappings/$prefix.approx.paf ]; then
-                #cat mappings/$prefix.approx.paf | awk -v OFS='\t' '{print $1, $3, $4, "", "", $5}' >mappings/$prefix.approx.$query.bed
-                cat mappings/$prefix.approx.paf | awk -v OFS='\t' '{print $6, $8, $9, "", "", "+"}' | sed 's/grch38#//g' >mappings/$prefix.approx.$target.bed
+        for n in 1 5 10 20 50 100 200 500 1000; do
+            for w in 0; do
+                prefix=$query-$target.s$s.l$l.p$p.n$n.w$w
         
-                # Number of GENCODE genes not entirely covered
-                missing_genes_in_target=$(bedtools subtract -a $path_gencode_genes_target -b mappings/$prefix.approx.$target.bed | cut -f 4 | sort | uniq | wc -l)
-        
-                missing_gene_ratio_target=$(echo "scale=4; 1 - $missing_genes_in_target / $total_genes_in_target" | bc)
-        
-                echo $query $target $total_genes_in_target $s $l $p $w $missing_gene_ratio_target $missing_genes_in_target | tr ' ' '\t' >>gencode_evaluation.mapping.tsv
-            fi
-        done
+                if [ -f mappings/$prefix.approx.paf ]; then
+                    #cat mappings/$prefix.approx.paf | awk -v OFS='\t' '{print $1, $3, $4, "", "", $5}' >mappings/$prefix.approx.$query.bed
+                    cat mappings/$prefix.approx.paf | awk -v OFS='\t' '{print $6, $8, $9, "", "", "+"}' | sed 's/grch38#//g' >mappings/$prefix.approx.$target.bed
+            
+                    # Number of GENCODE genes not entirely covered
+                    missing_genes_in_target=$(bedtools subtract -a $path_gencode_genes_target -b mappings/$prefix.approx.$target.bed | cut -f 4 | sort | uniq | wc -l)
+            
+                    missing_gene_ratio_target=$(echo "scale=4; 1 - $missing_genes_in_target / $total_genes_in_target" | bc)
+            
+                    echo $query $target $total_genes_in_target $s $l $p $w $missing_gene_ratio_target $missing_genes_in_target | tr ' ' '\t' >>gencode_evaluation.mapping.tsv
+                fi
+            done
       done
     done
 done
