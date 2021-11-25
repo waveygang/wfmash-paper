@@ -8,12 +8,22 @@ ToDo
 
 Create the main folder:
 
+#### Octopus
 ```
 mkdir -p /lizardfs/guarracino/vgp/45_fish
 cd /lizardfs/guarracino/vgp/45_fish
 ```
 
+#### BSC
+```
+mkdir -p /gpfs/projects/bsc18/bsc18995/vgp/45_fish
+cd /gpfs/projects/bsc18/bsc18995/vgp/45_fish
+```
+
+
 ### Obtain and explore the genomes
+
+#### Octopus
 
 Put in `/lizardfs/guarracino/vgp/45_fish` the `45_fish_alignment.fixed.xlsx` file.
 In the original file (`45_fish_alignment.xlsx`) there were swapped IDs.
@@ -28,8 +38,17 @@ cd /lizardfs/guarracino/vgp/45_fish/genomes
 ls /lizardfs/guarracino/vgp/45_fish/genomes/*.fna.gz | while read f; do gunzip $f; done
 ```
 
+#### BSC (where there is not internet connection)
+```
+mkdir -p /gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes
+
+#Log in on Octoput
+scp -r /lizardfs/guarracino/vgp/45_fish/genomes bsc18995@amdlogin.bsc.es:/gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes
+```
+
 Compute the mash distances:
 
+#### Octopus
 ```
 # guix install mash
 
@@ -40,6 +59,7 @@ mash triangle *.fna >45_fish_alignment.mash_triangle.txt
 
 Check the nucleotide composition:
 
+#### Octopus
 ```
 # https://github.com/lh3/seqtk/issues/47
 # guix install seqtk
@@ -47,6 +67,7 @@ Check the nucleotide composition:
 ls *.fna | while read f; do seqtk comp $f; done
 ```
 Use the `mash_triangle_heatmap.R` to produce a heatmap for the `45_fish_alignment.mash_triangle.txt` file
+
 
 ### Obtain BUSCO genes
 
