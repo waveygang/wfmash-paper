@@ -38,11 +38,11 @@ cd /lizardfs/guarracino/vgp/45_fish/genomes
 ls /lizardfs/guarracino/vgp/45_fish/genomes/*.fna.gz | while read f; do gunzip $f; done
 ```
 
-#### BSC (where there is not internet connection)
+#### BSC (where there is no internet connection)
 ```
 mkdir -p /gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes
 
-#Log in on Octoput
+#Log in on Octopus
 scp -r /lizardfs/guarracino/vgp/45_fish/genomes bsc18995@amdlogin.bsc.es:/gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes
 ```
 
@@ -78,13 +78,29 @@ cd /lizardfs/guarracino/vgp/45_fish/busco_genes/
 
 Prepare the `vertebrata_odb10` database:
 
+#### Octopus
 ```
 wget -c https://busco-data.ezlab.org/v5/data/lineages/vertebrata_odb10.2021-02-19.tar.gz
 tar -xvzf vertebrata_odb10.2021-02-19.tar.gz && rm vertebrata_odb10.2021-02-19.tar.gz
 ```
 
+#### BSC (where there is no internet connection)
+```
+mkdir -p /gpfs/projects/bsc18/bsc18995/45_fish/busco_genes
+
+#Log in on Octopus
+wget -c https://busco-data.ezlab.org/v5/data/lineages/vertebrata_odb10.2021-02-19.tar.gz
+scp vertebrata_odb10.2021-02-19.tar.gz bsc18995@amdlogin.bsc.es:/gpfs/projects/bsc18/bsc18995/45_fish/busco_genes
+rm vertebrata_odb10.2021-02-19.tar.gz
+
+#Log in on BSC
+cd /gpfs/projects/bsc18/bsc18995/45_fish/busco_genes
+tar -xvzf vertebrata_odb10.2021-02-19.tar.gz && rm vertebrata_odb10.2021-02-19.tar.gz
+```
+
 Identify BUSCO genes in each genome:
 
+#### Octopus
 ```
 #git clone --recursive https://gitlab.com/genenetwork/guix-bioinformatics.git
 #cd guix-bioinformatics
@@ -98,6 +114,19 @@ sbatch -p lowmem -c 48 --wrap 'cd /lizardfs/guarracino/vgp/45_fish/busco_genes/ 
 # `augustus_specie` doesn't work
 busco -i /lizardfs/guarracino/vgp/45_fish/genomes/GCA_007364275.2_fArcCen1_genomic.fna --lineage_dataset /lizardfs/guarracino/vgp/45_fish/busco_genes/vertebrata_odb10 -o xxx --mode genome --cpu 48 --offline --augustus_specie fish
 ```
+
+#### BSC
+```
+module load anaconda
+source activate busco # version 5.2.2
+
+dir_genomes=/gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes
+dir_busco_genes=/gpfs/projects/bsc18/bsc18995/vgp/45_fish/busco_genes
+path_vertebrata_odb10_db=/gpfs/projects/bsc18/bsc18995/45_fish/busco_genes/vertebrata_odb10/
+
+ls $dir_genomes/*.fna | while read path_genome; do name_genome="$(basename "$path_genome")"; dir_busco_genes_current=$dir_busco_genes/output_$name_genome; if [[ ! -s $dir_busco_genes_current/run_vertebrata_odb10/short_summary.txt ]]; then sbatch -c 128 --wrap 'TMPFOLDER=/scratch/tmp/$SLURM_JOBID; cd $TMPFOLDER; busco -i '$path_genome' --lineage_dataset '$path_vertebrata_odb10_db' -o output_'$name_genome' --mode genome --cpu 128 --offline --metaeuk_parameters="--remove-tmp-files=1" --metaeuk_rerun_parameters="--remove-tmp-files=1"; mkdir -p '$dir_busco_genes_current'; mv * '$dir_busco_genes_current; fi; done
+```
+
 # ToDo Cleaning and directory renaming
 
 
