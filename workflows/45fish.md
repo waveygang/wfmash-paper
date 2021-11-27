@@ -1,7 +1,8 @@
 # 45 fish
 
 ```
-(echo pggb wfmash seqwish smoothxg odgi gfaffix | tr ' ' '\n') | while read tool; do ls -l $(which $tool); done | cut -f 13 -d ' '
+(echo pggb wfmash seqwish smoothxg odgi gfaffix | tr ' ' '\n') | 
+    while read tool; do ls -l $(which $tool); done | cut -f 13 -d ' '
 
 ToDo
 ```
@@ -9,24 +10,25 @@ ToDo
 Create the main folder:
 
 #### Octopus
+
 ```
 mkdir -p /lizardfs/guarracino/vgp/45_fish
 cd /lizardfs/guarracino/vgp/45_fish
 ```
 
 #### BSC
+
 ```
 mkdir -p /gpfs/projects/bsc18/bsc18995/vgp/45_fish
 cd /gpfs/projects/bsc18/bsc18995/vgp/45_fish
 ```
 
-
 ### Obtain and explore the genomes
 
 #### Octopus
 
-Put in `/lizardfs/guarracino/vgp/45_fish` the `45_fish_alignment.fixed.xlsx` file.
-In the original file (`45_fish_alignment.xlsx`) there were swapped IDs.
+Put in `/lizardfs/guarracino/vgp/45_fish` the `45_fish_alignment.fixed.xlsx` file. In the original
+file (`45_fish_alignment.xlsx`) there were swapped IDs.
 
 Put in `/lizardfs/guarracino/vgp/45_fish` the `45_fish_alignment.download.py` file.
 
@@ -39,6 +41,7 @@ ls /lizardfs/guarracino/vgp/45_fish/genomes/*.fna.gz | while read f; do gunzip $
 ```
 
 #### BSC (where there is no internet connection)
+
 ```
 mkdir -p /gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes
 
@@ -49,6 +52,7 @@ scp -r /lizardfs/guarracino/vgp/45_fish/genomes bsc18995@amdlogin.bsc.es:/gpfs/p
 Compute the mash distances:
 
 #### Octopus
+
 ```
 # guix install mash
 
@@ -60,14 +64,15 @@ mash triangle *.fna >45_fish_alignment.mash_triangle.txt
 Check the nucleotide composition:
 
 #### Octopus
+
 ```
 # https://github.com/lh3/seqtk/issues/47
 # guix install seqtk
 
 ls *.fna | while read f; do seqtk comp $f; done
 ```
-Use the `mash_triangle_heatmap.R` to produce a heatmap for the `45_fish_alignment.mash_triangle.txt` file
 
+Use the `mash_triangle_heatmap.R` to produce a heatmap for the `45_fish_alignment.mash_triangle.txt` file
 
 ### Obtain BUSCO genes
 
@@ -79,12 +84,14 @@ cd /lizardfs/guarracino/vgp/45_fish/busco_genes/
 Prepare the `vertebrata_odb10` database:
 
 #### Octopus
+
 ```
 wget -c https://busco-data.ezlab.org/v5/data/lineages/vertebrata_odb10.2021-02-19.tar.gz
 tar -xvzf vertebrata_odb10.2021-02-19.tar.gz && rm vertebrata_odb10.2021-02-19.tar.gz
 ```
 
 #### BSC (where there is no internet connection)
+
 ```
 mkdir -p /gpfs/projects/bsc18/bsc18995/45_fish/busco_genes
 
@@ -101,6 +108,7 @@ tar -xvzf vertebrata_odb10.2021-02-19.tar.gz && rm vertebrata_odb10.2021-02-19.t
 Identify BUSCO genes in each genome:
 
 #### Octopus
+
 ```
 #git clone --recursive https://gitlab.com/genenetwork/guix-bioinformatics.git
 #cd guix-bioinformatics
@@ -116,6 +124,7 @@ busco -i /lizardfs/guarracino/vgp/45_fish/genomes/GCA_007364275.2_fArcCen1_genom
 ```
 
 #### BSC
+
 ```
 module load anaconda
 source activate busco # version 5.2.2
@@ -124,13 +133,19 @@ dir_genomes=/gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes
 dir_busco_genes=/gpfs/projects/bsc18/bsc18995/vgp/45_fish/busco_genes
 path_vertebrata_odb10_db=/gpfs/projects/bsc18/bsc18995/45_fish/busco_genes/vertebrata_odb10/
 
-ls $dir_genomes/*.fna | while read path_genome; do name_genome="$(basename "$path_genome")"; dir_busco_genes_current=$dir_busco_genes/output_$name_genome; if [[ ! -s $dir_busco_genes_current/run_vertebrata_odb10/short_summary.txt ]]; then sbatch -c 128 --wrap 'TMPFOLDER=/scratch/tmp/$SLURM_JOBID; cd $TMPFOLDER; busco -i '$path_genome' --lineage_dataset '$path_vertebrata_odb10_db' -o output_'$name_genome' --mode genome --cpu 128 --offline --metaeuk_parameters="--remove-tmp-files=1" --metaeuk_rerun_parameters="--remove-tmp-files=1"; mkdir -p '$dir_busco_genes_current'; mv * '$dir_busco_genes_current; fi; done
+ls $dir_genomes/*.fna | while read path_genome; do
+    name_genome="$(basename "$path_genome")";
+    dir_busco_genes_current=$dir_busco_genes/output_$name_genome;
+    if [[ ! -s $dir_busco_genes_current/run_vertebrata_odb10/short_summary.txt ]]; then
+        sbatch -c 128 --wrap 'TMPFOLDER=/scratch/tmp/$SLURM_JOBID; cd $TMPFOLDER; busco -i '$path_genome' --lineage_dataset '$path_vertebrata_odb10_db' -o output_'$name_genome' --mode genome --cpu 128 --offline --metaeuk_parameters="--remove-tmp-files=1" --metaeuk_rerun_parameters="--remove-tmp-files=1"; mv output_$name_genome '$dir_busco_genes;
+    fi;
+done
 ```
 
 # ToDo Cleaning and directory renaming
 
-
 Prepare BED files for the completely identified BUSCO genes:
+
 # ToDo on Octopus
 
 ```
@@ -142,8 +157,8 @@ done
 cd /lizardfs/guarracino/vgp/45_fish
 ```
 
-
 ### Mapping evaluation
+
 ```
 mkdir /lizardfs/guarracino/vgp/45_fish/mappings
 
@@ -185,9 +200,8 @@ for s in 20k 50k 100k 150k 200k 250k 300k 350k 400k 450k 500k 600k 700k 800k 900
 done
 ```
 
-
-
 # ???
+
 ```
 
 sbatch -p 1tbmem -c 48 --wrap 'cd /scratch && \time -v /home/guarracino/wfmash/build/bin/wfmash /lizardfs/guarracino/vgp/45_fish/genomes/GCA_900880675.2_fSpaAur1.2_genomic.fna.gz /lizardfs/guarracino/vgp/45_fish/genomes/GCA_904848185.1_fAcaLat1.1_genomic.fna.gz -t 48 -s 50k -l 50k -p 70 -i /lizardfs/guarracino/vgp/45_fish/GCA_904848185.1_fAcaLat1.1-GCA_900880675.2_fSpaAur1.2.s50k.l50k.p70.approx.paf > GCA_904848185.1_fAcaLat1.1-GCA_900880675.2_fSpaAur1.2.s50k.l50k.p70.paf && mv GCA_904848185.1_fAcaLat1.1-GCA_900880675.2_fSpaAur1.2.s50k.l50k.p70.paf /lizardfs/guarracino/vgp/45_fish/'
