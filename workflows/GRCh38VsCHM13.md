@@ -1,9 +1,24 @@
 # GRCh38 vs CHM13
 
+### Octopus
+
 ```
 (echo wfmash | tr ' ' '\n') | while read tool; do ls -l $(which $tool); done | cut -f 13 -d ' '
 
 /gnu/store/nkfg1wg76zqaig43qgslkwcag9rb9fzz-wfmash-0.6.0+e9a5b02-17/bin/wfmash
+```
+
+### BSC
+
+```
+module load intel mkl gsl jemalloc htslib cmake gcc/10.2.0
+LIBRARY_PATH=$LIBRARY_PATH:/apps/JEMALLOC/5.2.1/INTEL/lib
+
+# Copy wfmash repository
+scp -r wfmash bsc18995@amdlogin.bsc.es:/gpfs/projects/bsc18/bsc18995/
+cd wfmash
+git checkout 6f4a9248f34470dfe36196e96e018fe1f526a8c8
+cmake -H. -Bbuild && cmake --build build -- -j 128
 ```
 
 Create the main folder:
@@ -38,6 +53,9 @@ zgrep '^#' -v  gencode.v38.annotation.gtf.gz | awk -v OFS='\t' '$3 == "gene" {pr
 
 ### Mapping evaluation
 
+TODO: USE sbatch -c 24 and wfmash -t 24, to allow SLURM to run multiple processes on the same node. The mapping is
+limited by the number of chromosomes TODO: -p 75 and 70
+
 Map:
 
 ```
@@ -54,7 +72,7 @@ for p in 99 98 95 90 85 80; do
                 prefix=$query-$target.s$s.l$l.p$p.n$n.w$w
         
                 if [ ! -f mappings/$prefix.approx.paf ]; then
-                    sbatch -p lowmem -c 48 --wrap '\time -v /gnu/store/nkfg1wg76zqaig43qgslkwcag9rb9fzz-wfmash-0.6.0+e9a5b02-17/bin/wfmash genomes/'${target}' genomes/'${query}' -t 48 -s '$s' -l '$l' -p '$p' -n '$n' -w '$w' -m >mappings/'$prefix'.approx.paf'
+                    sbatch -p lowmem -c 24 --wrap '\time -v /gnu/store/nkfg1wg76zqaig43qgslkwcag9rb9fzz-wfmash-0.6.0+e9a5b02-17/bin/wfmash genomes/'${target}' genomes/'${query}' -t 24 -s '$s' -l '$l' -p '$p' -n '$n' -w '$w' -m >mappings/'$prefix'.approx.paf'
                 fi
             done
         done

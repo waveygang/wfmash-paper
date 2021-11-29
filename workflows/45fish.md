@@ -1,10 +1,24 @@
 # 45 fish
 
-```
-(echo pggb wfmash seqwish smoothxg odgi gfaffix | tr ' ' '\n') | 
-    while read tool; do ls -l $(which $tool); done | cut -f 13 -d ' '
+### Octopus
 
-ToDo
+```
+(echo wfmash | tr ' ' '\n') | while read tool; do ls -l $(which $tool); done | cut -f 13 -d ' '
+
+/gnu/store/nkfg1wg76zqaig43qgslkwcag9rb9fzz-wfmash-0.6.0+e9a5b02-17/bin/wfmash
+```
+
+### BSC
+
+```
+module load intel mkl gsl jemalloc htslib cmake gcc/10.2.0
+LIBRARY_PATH=$LIBRARY_PATH:/apps/JEMALLOC/5.2.1/INTEL/lib
+
+# Copy wfmash repository
+scp -r wfmash bsc18995@amdlogin.bsc.es:/gpfs/projects/bsc18/bsc18995/
+cd wfmash
+git checkout 6f4a9248f34470dfe36196e96e018fe1f526a8c8
+cmake -H. -Bbuild && cmake --build build -- -j 128
 ```
 
 Create the main folder:
@@ -158,6 +172,7 @@ cd /lizardfs/guarracino/vgp/45_fish
 ```
 
 ### Mapping evaluation
+
 
 ```
 mkdir /lizardfs/guarracino/vgp/45_fish/mappings
