@@ -1,6 +1,8 @@
 # 45 fish
 
-### Octopus
+### Versions
+
+#### Octopus
 
 ```
 (echo wfmash | tr ' ' '\n') | while read tool; do ls -l $(which $tool); done | cut -f 13 -d ' '
@@ -8,7 +10,9 @@
 /gnu/store/nkfg1wg76zqaig43qgslkwcag9rb9fzz-wfmash-0.6.0+e9a5b02-17/bin/wfmash
 ```
 
-### BSC
+#### BSC
+
+Compile `wfmash`:
 
 ```
 module load intel mkl gsl jemalloc htslib cmake gcc/10.2.0
@@ -20,6 +24,18 @@ cd wfmash
 git checkout 6f4a9248f34470dfe36196e96e018fe1f526a8c8
 cmake -H. -Bbuild && cmake --build build -- -j 128
 ```
+
+Compile `samtools`:
+
+```
+# Download `samtools-1.14.tar.` and scp it on the cluster
+tar -xf samtools-1.14.tar.bz2
+rm samtools-1.14.tar.bz2
+cd samtools-1.14/
+cmake
+```
+
+### Preparation
 
 Create the main folder:
 
@@ -75,6 +91,17 @@ ls *.fna | while read f; do mash sketch $f; done
 mash triangle *.fna >45_fish_alignment.mash_triangle.txt
 ```
 
+#### BSC
+
+Compute the indexes:
+
+```
+run_samtools=/gpfs/projects/bsc18/bsc18995/samtools-1.14/samtools
+
+cd /gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes
+ls *.fna | while read f; do echo $f; $run_samtools faidx $f; done
+```
+
 Check the nucleotide composition:
 
 #### Octopus
@@ -107,7 +134,7 @@ tar -xvzf vertebrata_odb10.2021-02-19.tar.gz && rm vertebrata_odb10.2021-02-19.t
 #### BSC (where there is no internet connection)
 
 ```
-mkdir -p /gpfs/projects/bsc18/bsc18995/45_fish/busco_genes
+mkdir -p /gpfs/projects/bsc18/bsc18995/vgp/45_fish/busco_genes
 
 #Log in on Octopus
 wget -c https://busco-data.ezlab.org/v5/data/lineages/vertebrata_odb10.2021-02-19.tar.gz
@@ -115,7 +142,7 @@ scp vertebrata_odb10.2021-02-19.tar.gz bsc18995@amdlogin.bsc.es:/gpfs/projects/b
 rm vertebrata_odb10.2021-02-19.tar.gz
 
 #Log in on BSC
-cd /gpfs/projects/bsc18/bsc18995/45_fish/busco_genes
+cd /gpfs/projects/bsc18/bsc18995/vgp/45_fish/busco_genes
 tar -xvzf vertebrata_odb10.2021-02-19.tar.gz && rm vertebrata_odb10.2021-02-19.tar.gz
 ```
 
@@ -133,14 +160,14 @@ sbatch -p lowmem -c 48 --wrap 'cd /lizardfs/guarracino/vgp/45_fish/busco_genes/ 
 # `busco` doesn't work on /scratch
 #ls /lizardfs/guarracino/vgp/45_fish/genomes/*.fna | while read path_genome; do name_genome="$(basename "$path_genome")"; sbatch -p lowmem -c 48 --wrap 'cd /scratch && busco -i '"$path_genome"' --lineage_dataset /lizardfs/guarracino/vgp/45_fish/busco_genes/vertebrata_odb10 -o '"$name_genome"' --mode genome --cpu 48 --offline --augustus && mv '"$name_genome"' /lizardfs/guarracino/vgp/45_fish/busco_genes/ '; done
 
-# `augustus_specie` doesn't work
-busco -i /lizardfs/guarracino/vgp/45_fish/genomes/GCA_007364275.2_fArcCen1_genomic.fna --lineage_dataset /lizardfs/guarracino/vgp/45_fish/busco_genes/vertebrata_odb10 -o xxx --mode genome --cpu 48 --offline --augustus_specie fish
+# `augustus_species` doesn't work
+busco -i /lizardfs/guarracino/vgp/45_fish/genomes/GCA_007364275.2_fArcCen1_genomic.fna --lineage_dataset /lizardfs/guarracino/vgp/45_fish/busco_genes/vertebrata_odb10 -o xxx --mode genome --cpu 48 --offline --augustus_species fish
 ```
 
 #### BSC
 
 ```
-module load anaconda
+module load anaconda/2021.05_py38
 source activate busco # version 5.2.2
 
 dir_genomes=/gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes
@@ -151,28 +178,94 @@ ls $dir_genomes/*.fna | while read path_genome; do
     name_genome="$(basename "$path_genome")";
     dir_busco_genes_current=$dir_busco_genes/output_$name_genome;
     if [[ ! -s $dir_busco_genes_current/run_vertebrata_odb10/short_summary.txt ]]; then
-        sbatch -c 128 --wrap 'TMPFOLDER=/scratch/tmp/$SLURM_JOBID; cd $TMPFOLDER; busco -i '$path_genome' --lineage_dataset '$path_vertebrata_odb10_db' -o output_'$name_genome' --mode genome --cpu 128 --offline --metaeuk_parameters="--remove-tmp-files=1" --metaeuk_rerun_parameters="--remove-tmp-files=1"; mv output_$name_genome '$dir_busco_genes;
+        sbatch -c 128 --wrap 'TMPFOLDER=/scratch/tmp/$SLURM_JOBID; cd $TMPFOLDER; busco -i '$path_genome' --lineage_dataset '$path_vertebrata_odb10_db' -o '$name_genome' --mode genome --cpu 128 --offline --metaeuk_parameters="--remove-tmp-files=1" --metaeuk_rerun_parameters="--remove-tmp-files=1"; mv $name_genome '$dir_busco_genes;
     fi;
 done
 ```
 
-# ToDo Cleaning and directory renaming
+BUSCO genes will be found in `$name_genome/run_/full_table.tsv` files.
+
+# ToDo Cleaning and directory renaming #############################
 
 Prepare BED files for the completely identified BUSCO genes:
 
-# ToDo on Octopus
+#### BSC
 
 ```
-cd /lizardfs/guarracino/vgp/45_fish/busco_genes/
-ls */full_table.tsv | while read f; do
-dir_parent=$(dirname "$f")
-grep Complete "$f" | awk -v OFS='\t' '{print $3, $4, $5, $1, $7, $6}' >"$dir_parent"/$dir_parent.busco_genes.complete.bed
+module load gcc bedtools/2.30.0
+
+cd /gpfs/projects/bsc18/bsc18995/vgp/45_fish/busco_genes
+ls */run_/full_table.tsv | while read f; do
+    dir_parent=$(dirname "$f");
+    name_genome=$(dirname "$dir_parent");
+    grep Complete "$f" | awk -v OFS='\t' '{print $3, $4, $5, $1, $7, $6}' >"$name_genome"/"$name_genome".busco_genes.complete.bed
 done
 cd /lizardfs/guarracino/vgp/45_fish
 ```
 
 ### Mapping evaluation
 
+```
+module load intel mkl gsl jemalloc htslib
+LIBRARY_PATH=$LIBRARY_PATH:/apps/JEMALLOC/5.2.1/INTEL/lib
+
+run_wfmash=/gpfs/projects/bsc18/bsc18995/wfmash/build/bin/wfmash
+dir_mappings=/gpfs/projects/bsc18/bsc18995/vgp/45_fish/mappings
+
+cd /gpfs/projects/bsc18/bsc18995/vgp/45_fish/
+mkdir $dir_mappings
+
+echo $(ls genomes/*.fna) | awk -f combinations.awk | while read -r query target; do
+    query="$(basename $query)"
+    target="$(basename $target)"
+    #echo $query $target;
+    
+    path_query=/gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes/${query}
+    path_target=/gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes/${target}
+   
+    path_complete_busco_genes_query=busco_genes/"$query"/$query.busco_genes.complete.bed
+    path_complete_busco_genes_target=busco_genes/"$target"/$target.busco_genes.complete.bed
+    
+    # Number of complete BUSCO genes in the genomes
+    total_genes_in_query=$(cat $path_complete_busco_genes_query | wc -l)
+    total_genes_in_target=$(cat $path_complete_busco_genes_target | wc -l)
+
+    for p in 70; do
+        for s in 1M 300k 100k 50k 20k 10k; do
+            l=0
+            for n in 1; do
+                for w in 0; do
+                    prefix=$query-$target.s$s.l$l.p$p.n$n.w$w
+            
+                    if [ ! -f mappings/$prefix.approx.paf ]; then
+                        sbatch -c 32 --wrap 'TMPFOLDER=/scratch/tmp/$SLURM_JOBID; cd $TMPFOLDER; \time -v '$run_wfmash' '$path_target' '$path_query' -t 32 -s '$s' -l '$l' -p '$p' -n '$n' -w '$w' -m >'$dir_mappings'/'$prefix'.approx.paf'
+                    fi
+                done
+            done
+        done
+    done 
+done
+
+```
+
+```
+    echo query target total_genes_in_query total_genes_in_target s l p w present_gene_ratio_query present_gene_ratio_target missing_genes_in_query missing_genes_in_target | tr ' ' '\t' >busco_evaluation.mapping.tsv
+    
+          cat mappings/$prefix.approx.paf | awk -v OFS='\t' '{print $1, $3, $4, "", "", $5}' >mappings/$prefix.approx.$query.bed
+          cat mappings/$prefix.approx.paf | awk -v OFS='\t' '{print $6, $8, $9, "", "", "+"}' >mappings/$prefix.approx.$target.bed
+    
+          # Number of complete BUSCO genes not entirely covered
+          missing_genes_in_query=$(bedtools subtract -a $path_complete_busco_genes_query -b mappings/$prefix.approx.$query.bed | cut -f 4 | sort | uniq | wc -l)
+          missing_genes_in_target=$(bedtools subtract -a $path_complete_busco_genes_target -b mappings/$prefix.approx.$target.bed | cut -f 4 | sort | uniq | wc -l)
+    
+          missing_gene_ratio_query=$(echo "scale=4; 1 - $missing_genes_in_query / $total_genes_in_query" | bc)
+          missing_gene_ratio_target=$(echo "scale=4; 1 - $missing_genes_in_target / $total_genes_in_target" | bc)
+          #ToDo compute the average?
+    
+          echo $query $target $total_genes_in_query $total_genes_in_target $s $l $p $w $missing_gene_ratio_query $missing_gene_ratio_target $missing_genes_in_query $missing_genes_in_target | tr ' ' '\t' >>busco_evaluation.mapping.tsv
+
+
+```
 
 ```
 mkdir /lizardfs/guarracino/vgp/45_fish/mappings
