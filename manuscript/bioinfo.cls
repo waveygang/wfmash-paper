@@ -259,12 +259,12 @@
   {%
   \def\@oddfoot{{
         \hbox to \textwidth{\helvetica
-        \fontsize{7}{9}\fontshape{n}\selectfont \copyright\space The Author \@copyrightyear. Published by Oxford University Press. All rights reserved. For permissions, please e-mail: journals.permissions@oup.com%
+        \fontsize{7}{9}\fontshape{n}\selectfont \copyright\space The Author \@copyrightyear.%
           \hfill\small\helveticabold\thepage}%
         }}%
   \def\@evenfoot{{
         \hbox to \textwidth{\helvetica\thepage\hfill
-          \fontsize{7}{9}\fontshape{n}\selectfont The Author \@copyrightyear. Published by Oxford University Press. All rights reserved. For permissions, please e-mail: journals.permissions@oup.com}%
+          \fontsize{7}{9}\fontshape{n}\selectfont The Author \@copyrightyear.}%
         }}%
   \let\@evenhead\relax
   \let\@oddhead\relax}
@@ -497,8 +497,8 @@
 %    \flushright\fontsize{8}{10}\fontshape{it}\selectfont
 %        Vol. 00\ no. 00 \@pubyear\\
 %        \hfill Pages \thepagerange
-%  }
-  \hfill\includegraphics{OUP_First_SBk_Bot_8401.eps}}
+  }
+%  \hfill\includegraphics{OUP_First_SBk_Bot_8401.eps}}
   \vskip2pt
   \rule{415pt}{2\p@}\par%
   \helvetica
