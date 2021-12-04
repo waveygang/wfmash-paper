@@ -28,7 +28,7 @@ mkdir -p /lizardfs/guarracino/vgp/grch38_vs_chm13
 cd /lizardfs/guarracino/vgp/grch38_vs_chm13
 ```
 
-### Obtain the the data
+### Obtain the data
 
 Download and prepare the references:
 

@@ -27,45 +27,45 @@ run_meryl=~/git/Winnowmap/bin/meryl
 # Input
 assembly='CHM13_v1.1'
 species='Homo sapiens'
-path_input_fasta=chr20.fa
-path_input_sdf=chr20.sdf
+path_input_fasta=chm13.draft_v1.1.fa
+path_input_sdf=chm13.draft_v1.1.sdf
 
 
 # Variables
 header_input_fasta=$(grep '>' $path_input_fasta | sed 's/>//g')
 name_input_fasta=$(basename $path_input_fasta .fa)
 len_input_fasta=$(cut $path_input_fasta.fai -f2)
-threads=16
+threads=14
 
 divergences=(
 #  0.001
-  0.01
-#  0.05
+#  0.01
+  0.05
 #  0.15
 #  0.20
 )
 
 presets=(
-  'asm5'
-#  'asm10'
+#  'asm5'
+  'asm10'
 #  'asm20'
 )
 
 lengths=(
 	#200000
 	#500000
-	1000000
-	#5000000
+	#1000000
+	5000000
 	#30000000
 	#70000000
 	#150000000
 )
 
-samples=({A..C})
+samples=({A..D})
 
 
 # Mutated chromosome generation (SNVs + small INDELs)
-variant_block=5
+variant_block=10
 
 mkdir -p chromosomes
 for index in ${!divergences[*]};
@@ -80,7 +80,7 @@ do
 
 	name_output_pre=${name_input_fasta}_${divergence}_pre
 	prefix_mutations_vcf_pre=chromosomes/$name_output_pre
-	python3 $path_mutation_simulator_py $path_input_fasta --output $prefix_mutations_vcf_pre args --snp $snv_rate -titv 2 --insert $ins_rate --snpblock $variant_block --insertlength 2000 --insertblock $variant_block --deletion $del_rate --deletionlength 2000 --deletionblock $variant_block --assembly $assembly --species "$species" --sample ${name_input_fasta}_mt
+	python3 $path_mutation_simulator_py $path_input_fasta --output $prefix_mutations_vcf_pre args --snp $snv_rate -titv 2 --insert $ins_rate --snpblock $variant_block --insertlength 5 --insertblock $variant_block --deletion $del_rate --deletionlength 5 --deletionblock $variant_block --assembly $assembly --species "$species" --sample ${name_input_fasta}_mt
 
   # Remove invalid variants (REF == ALT, in case on Ns in the reference)
 	name_output=${name_input_fasta}_$divergence
@@ -133,7 +133,7 @@ do
 
 	base_output=${name_input_fasta}+samples_$divergence
 
-	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; cat $path_input_fasta <($run_splitfa $path_input_mt_fasta -l $len-$len -s 1 2> seqs/samples_$divergence.l${len}.paf | perl ~/git/wfmash-paper/scripts/split_contigs.perl -) | bgzip -@ $threads -c > seqs/$base_output.l${len}.fa.gz; samtools faidx seqs/$base_output.l${len}.fa.gz; sed 's/sample.#chr8_b_def\t/chr8_b_def\t/g' seqs/samples_$divergence.l${len}.paf -i; done;
+	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]}; cat $path_input_fasta <($run_splitfa $path_input_mt_fasta -l $len-$len -s 1 2> seqs/samples_$divergence.l${len}.paf | perl /home/guarracino/Desktop/SharedFolder/wfmash-paper/scripts/split_contigs.perl -) | bgzip -@ $threads -c > seqs/$base_output.l${len}.fa.gz; samtools faidx seqs/$base_output.l${len}.fa.gz; sed 's/sample.#chr8_b_def\t/chr8_b_def\t/g' seqs/samples_$divergence.l${len}.paf -i; done;
 done
 
 # Check
