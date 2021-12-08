@@ -20,15 +20,17 @@ samtools faidx chr8.fa chr8:5800000-13800000 | sed 's/[:-]/_/g' | sed 's/-/_/g' 
 # Tools
 run_splitfa=~/git/fork/splitfa/target/release/splitfa # https://github.com/AndreaGuarracino/splitfa.git, random_segment_length branch
 path_mutation_simulator_py=~/git/Mutation-Simulator/mutation-simulator.py
+run_fastix=~/git/fastix/target/release/fastix
 run_rtg=/home/tools/RealTimeGenomics/3.12/rtg
 run_winnomap2=~/git/Winnowmap/bin/winnowmap
 run_meryl=~/git/Winnowmap/bin/meryl
+run_mutation_simulator_py="python3 $path_mutation_simulator_py"
 
 # Input
 assembly='CHM13_v1.1'
 species='Homo sapiens'
-path_input_fasta=chm13.draft_v1.1.fa
-path_input_sdf=chm13.draft_v1.1.sdf
+path_input_fasta=chr20_21_22.fa
+path_input_sdf=chr20_21_22.sdf
 
 
 # Variables
@@ -39,8 +41,8 @@ threads=14
 
 divergences=(
 #  0.001
-#  0.01
-  0.05
+  0.01
+#  0.05
 #  0.15
 #  0.20
 )
@@ -61,13 +63,13 @@ lengths=(
 	#150000000
 )
 
-samples=({A..D})
+samples=({A..A})
 
 
 # Mutated chromosome generation (SNVs + small INDELs)
 variant_block=10
 
-mkdir -p chromosomes
+mkdir -p bases
 for index in ${!divergences[*]};
 do
 	divergence=${divergences[$index]}
@@ -79,17 +81,16 @@ do
 	del_rate=$(echo "$divergence * 2 * 0.00005" | bc -l)
 
 	name_output_pre=${name_input_fasta}_${divergence}_pre
-	prefix_mutations_vcf_pre=chromosomes/$name_output_pre
-	python3 $path_mutation_simulator_py $path_input_fasta --output $prefix_mutations_vcf_pre args --snp $snv_rate -titv 2 --insert $ins_rate --snpblock $variant_block --insertlength 5 --insertblock $variant_block --deletion $del_rate --deletionlength 5 --deletionblock $variant_block --assembly $assembly --species "$species" --sample ${name_input_fasta}_mt
+	prefix_mutations_vcf_pre=bases/$name_output_pre
+	$run_mutation_simulator_py $path_input_fasta --output $prefix_mutations_vcf_pre args --snp $snv_rate -titv 2 --insert $ins_rate --snpblock $variant_block --insertlength 5 --insertblock $variant_block --deletion $del_rate --deletionlength 5 --deletionblock $variant_block --assembly $assembly --species "$species" --sample ${name_input_fasta}_mt
 
   # Remove invalid variants (REF == ALT, in case on Ns in the reference)
 	name_output=${name_input_fasta}_$divergence
-	path_mutations_vcf=chromosomes/$name_output.vcf
-
+	path_mutations_vcf=bases/$name_output.vcf
   cat <(grep '^#' $prefix_mutations_vcf_pre.vcf) <(grep '^#' $prefix_mutations_vcf_pre.vcf -v | awk '{if ($4 != $5){print$0}}') > $path_mutations_vcf
 
   rm $prefix_mutations_vcf_pre.vcf
-  mv chromosomes/$name_output_pre.fa chromosomes/$name_output.fa
+  mv bases/$name_output_pre.fa bases/$name_output.fa
 done
 
 
@@ -102,12 +103,17 @@ do
 	echo $divergence
 
 	name_output=${name_input_fasta}_$divergence
-	path_mutations_vcf=chromosomes/$name_output.vcf
+	path_mutations_vcf=bases/$name_output.vcf
 
 	num_mutations_vcf=$(grep '^#' $path_mutations_vcf -vc)
 	divergence_rate=$(echo "(($len_input_fasta / $variant_block) * $divergence) / $num_mutations_vcf" | bc -l)
 
-	for index_s in ${!samples[*]}; do sample=${samples[$index_s]}; samplename=sample$sample; vcflib vcfrandomsample $path_mutations_vcf --rate $divergence_rate | sed "s/FORMAT\t${name_input_fasta}_mt/FORMAT\t${samplename}/g" | bgzip -c > samples/$name_output.$samplename.vcf.gz; tabix samples/$name_output.$samplename.vcf.gz; done
+	for index_s in ${!samples[*]}; do
+	  sample=${samples[$index_s]};
+	  samplename=sample$sample;
+	  vcflib vcfrandomsample $path_mutations_vcf --rate $divergence_rate | sed "s/FORMAT\t${name_input_fasta}_mt/FORMAT\t${samplename}/g" | bgzip -c > samples/$name_output.$samplename.vcf.gz;
+	  tabix samples/$name_output.$samplename.vcf.gz;
+	done
 done
 
 for index in ${!divergences[*]};
@@ -116,7 +122,11 @@ do
 
 	name_output=${name_input_fasta}_$divergence
 
-	for index_s in ${!samples[*]}; do sample=${samples[$index_s]}; samplename=sample$sample; path_sample_mutations_vcf_gz=samples/$name_output.$samplename.vcf.gz; cat $path_input_fasta | bcftools consensus $path_sample_mutations_vcf_gz --sample $samplename | sed "s/>$header_input_fasta/>${samplename}#$header_input_fasta/g" >> samples/$name_output.samples.fa
+	for index_s in ${!samples[*]}; do
+	  sample=${samples[$index_s]};
+	  samplename=sample$sample;
+	  path_sample_mutations_vcf_gz=samples/$name_output.$samplename.vcf.gz;
+	  cat $path_input_fasta | bcftools consensus $path_sample_mutations_vcf_gz --sample $samplename | sed "s/>$header_input_fasta/>${samplename}#$header_input_fasta/g" >> samples/$name_output.samples.fa
 	done
 done
 
@@ -184,9 +194,6 @@ do
 done
 
 
-# Check
-grep 'Elapsed (wall clock)' alignments/*/*log
-grep 'Maximum resident set size (kbytes)' alignments/*/*log
 
 
 # Pangenome graphs induction

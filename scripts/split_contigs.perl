@@ -22,7 +22,7 @@ while(<IN>){
           print "${name}_n$ctgcount (size=".length($ctgseq).")\n$ctgseq\n";
         }
       }else{
-        print ">$name\n$seq\n";
+        print "$name\n$seq\n";
       }
     }
     $seq='';

@@ -51,6 +51,10 @@ zgrep '^#' -v  gencode.v38.annotation.gtf.gz | awk -v OFS='\t' '$3 == "gene" {pr
 
 ```
 
+# TODO: masking simulated/modeled regions
+https://www.ncbi.nlm.nih.gov/grc/human - Modeled centromeres and heterochromatin regions
+http://genomeref.blogspot.com/2021/07/one-of-these-things-doest-belong.html also contains a BED file that contains the extra falsely duplicated regions on 21p, however the link to the bed file seems broken
+
 ### Mapping evaluation
 
 TODO: USE sbatch -c 24 and wfmash -t 24, to allow SLURM to run multiple processes on the same node. The mapping is
@@ -59,12 +63,13 @@ limited by the number of chromosomes TODO: -p 75 and 70
 Map:
 
 ```
+cd /lizardfs/guarracino/vgp/grch38_vs_chm13/
 mkdir /lizardfs/guarracino/vgp/grch38_vs_chm13/mappings
 
 query=chm13.fa
 target=grch38.fa
 
-for p in 99 98 95 90 85 80; do
+for p in 99 98 95 90 85 80 75; do
     for s in 2M 1M 900k 800k 700k 600k 500k 450k 400k 350k 300k 250k 200k 150k 100k 50k 20k 10k; do
         l=0
         for n in 1 5 10 20 50 100 200 500 1000; do
@@ -72,7 +77,7 @@ for p in 99 98 95 90 85 80; do
                 prefix=$query-$target.s$s.l$l.p$p.n$n.w$w
         
                 if [ ! -f mappings/$prefix.approx.paf ]; then
-                    sbatch -p lowmem -c 24 --wrap '\time -v /gnu/store/nkfg1wg76zqaig43qgslkwcag9rb9fzz-wfmash-0.6.0+e9a5b02-17/bin/wfmash genomes/'${target}' genomes/'${query}' -t 24 -s '$s' -l '$l' -p '$p' -n '$n' -w '$w' -m >mappings/'$prefix'.approx.paf'
+                    sbatch -p 386mem -c 12 --wrap '\time -v /gnu/store/nkfg1wg76zqaig43qgslkwcag9rb9fzz-wfmash-0.6.0+e9a5b02-17/bin/wfmash genomes/'${target}' genomes/'${query}' -t 12 -s '$s' -l '$l' -p '$p' -n '$n' -w '$w' -m >mappings/'$prefix'.approx.paf'
                 fi
             done
         done
