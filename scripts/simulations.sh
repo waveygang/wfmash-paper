@@ -1,3 +1,5 @@
+### ToDo FILE TO BE REMOVED IN THE FUTURE ###
+
 # Download the T2T assembly
 wget -c https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/chm13.draft_v1.1.fasta.gz
 
@@ -29,8 +31,8 @@ run_mutation_simulator_py="python3 $path_mutation_simulator_py"
 # Input
 assembly='CHM13_v1.1'
 species='Homo sapiens'
-path_input_fasta=chr20_21_22.fa
-path_input_sdf=chr20_21_22.sdf
+path_input_fasta=chrIV.fa
+path_input_sdf=chrIV.sdf
 
 
 # Variables
@@ -55,8 +57,8 @@ presets=(
 
 lengths=(
 	#200000
-	#500000
-	#1000000
+	500000
+	1000000
 	5000000
 	#30000000
 	#70000000
