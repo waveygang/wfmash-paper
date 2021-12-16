@@ -14,20 +14,25 @@
 
 Compile `wfmash`:
 
-```
+```shell
+# Copy wfmash repository (git clone --recursive https://github.com/ekg/wfmash.git)
+scp -r wfmash bsc18995@amdlogin.bsc.es:/gpfs/projects/bsc18/bsc18995/
+
+# Login
 module load intel mkl gsl jemalloc htslib cmake gcc/10.2.0
 LIBRARY_PATH=$LIBRARY_PATH:/apps/JEMALLOC/5.2.1/INTEL/lib
 
-# Copy wfmash repository
-scp -r wfmash bsc18995@amdlogin.bsc.es:/gpfs/projects/bsc18/bsc18995/
+cd /gpfs/projects/bsc18/bsc18995/
 cd wfmash
-git checkout 6f4a9248f34470dfe36196e96e018fe1f526a8c8
-cmake -H. -Bbuild && cmake --build build -- -j 128
+git checkout 09e73eb3fcf24b8b7312b8890dd0741933f0d1cd
+cmake -H. -Bbuild && cmake --build build -- -j 48
+mv build/bin/wfmash build/bin/wfmash-09e73eb3fcf24b8b7312b8890dd0741933f0d1cd
+cd ..
 ```
 
 Compile `samtools`:
 
-```
+```shell
 # Download `samtools-1.14.tar.` and scp it on the cluster
 tar -xf samtools-1.14.tar.bz2
 rm samtools-1.14.tar.bz2
@@ -41,14 +46,14 @@ Create the main folder:
 
 #### Octopus
 
-```
+```shell
 mkdir -p /lizardfs/guarracino/vgp/45_fish
 cd /lizardfs/guarracino/vgp/45_fish
 ```
 
 #### BSC
 
-```
+```shell
 mkdir -p /gpfs/projects/bsc18/bsc18995/vgp/45_fish
 cd /gpfs/projects/bsc18/bsc18995/vgp/45_fish
 ```
@@ -62,7 +67,7 @@ file (`45_fish_alignment.xlsx`) there were swapped IDs.
 
 Put in `/lizardfs/guarracino/vgp/45_fish` the `45_fish_alignment.download.py` file.
 
-```
+```shell
 python3 45_fish_alignment.download.py 45_fish_alignment.fixed.xlsx genomes
 
 # Decompress genomes
@@ -72,18 +77,26 @@ ls /lizardfs/guarracino/vgp/45_fish/genomes/*.fna.gz | while read f; do gunzip $
 
 #### BSC (where there is no internet connection)
 
-```
+```shell
 mkdir -p /gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes
 
 #Log in on Octopus
 scp -r /lizardfs/guarracino/vgp/45_fish/genomes bsc18995@amdlogin.bsc.es:/gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes
 ```
 
+# Merge all genomes:
+```shell
+cat /gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes/*fna | bgzip -@ 128 -c > /gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes/45_fish.fa.gz
+
+sbatch -c 128 --wrap 'TMPFOLDER=/scratch/tmp/$SLURM_JOBID; cd $TMPFOLDER; cat /gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes/*fna | bgzip -@ 128 -c > /gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes/45_fish.fa.gz'
+```
+
+
 Compute the mash distances:
 
 #### Octopus
 
-```
+```shell
 # guix install mash
 
 cd /lizardfs/guarracino/vgp/45_fish/genomes
@@ -95,18 +108,20 @@ mash triangle *.fna >45_fish_alignment.mash_triangle.txt
 
 Compute the indexes:
 
-```
+```shell
 run_samtools=/gpfs/projects/bsc18/bsc18995/samtools-1.14/samtools
 
 cd /gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes
 ls *.fna | while read f; do echo $f; $run_samtools faidx $f; done
+
+$run_samtools faidx 45_fish.fa.gz
 ```
 
 Check the nucleotide composition:
 
 #### Octopus
 
-```
+```shell
 # https://github.com/lh3/seqtk/issues/47
 # guix install seqtk
 
@@ -117,7 +132,7 @@ Use the `mash_triangle_heatmap.R` to produce a heatmap for the `45_fish_alignmen
 
 ### Obtain BUSCO genes
 
-```
+```shell
 mkdir /lizardfs/guarracino/vgp/45_fish/busco_genes/
 cd /lizardfs/guarracino/vgp/45_fish/busco_genes/
 ```
@@ -126,14 +141,14 @@ Prepare the `vertebrata_odb10` database:
 
 #### Octopus
 
-```
+```shell
 wget -c https://busco-data.ezlab.org/v5/data/lineages/vertebrata_odb10.2021-02-19.tar.gz
 tar -xvzf vertebrata_odb10.2021-02-19.tar.gz && rm vertebrata_odb10.2021-02-19.tar.gz
 ```
 
 #### BSC (where there is no internet connection)
 
-```
+```shell
 mkdir -p /gpfs/projects/bsc18/bsc18995/vgp/45_fish/busco_genes
 
 #Log in on Octopus
@@ -150,7 +165,7 @@ Identify BUSCO genes in each genome:
 
 #### Octopus
 
-```
+```shell
 #git clone --recursive https://gitlab.com/genenetwork/guix-bioinformatics.git
 #cd guix-bioinformatics
 #GUIX_PACKAGE_PATH=. guix install busco
@@ -166,7 +181,7 @@ busco -i /lizardfs/guarracino/vgp/45_fish/genomes/GCA_007364275.2_fArcCen1_genom
 
 #### BSC
 
-```
+```shell
 module load anaconda/2021.05_py38
 source activate busco # version 5.2.2
 
@@ -191,7 +206,7 @@ Prepare BED files for the completely identified BUSCO genes:
 
 #### BSC
 
-```
+```shell
 module load gcc bedtools/2.30.0
 
 cd /gpfs/projects/bsc18/bsc18995/vgp/45_fish/busco_genes
@@ -205,11 +220,11 @@ cd /lizardfs/guarracino/vgp/45_fish
 
 ### Mapping evaluation
 
-```
+```shell
 module load intel mkl gsl jemalloc htslib
 LIBRARY_PATH=$LIBRARY_PATH:/apps/JEMALLOC/5.2.1/INTEL/lib
 
-run_wfmash=/gpfs/projects/bsc18/bsc18995/wfmash/build/bin/wfmash
+run_wfmash=/gpfs/projects/bsc18/bsc18995/wfmash/build/bin/wfmash-09e73eb3fcf24b8b7312b8890dd0741933f0d1cd
 dir_mappings=/gpfs/projects/bsc18/bsc18995/vgp/45_fish/mappings
 
 cd /gpfs/projects/bsc18/bsc18995/vgp/45_fish/
@@ -245,7 +260,45 @@ echo $(ls genomes/*.fna) | awk -f combinations.awk | while read -r query target;
         done
     done 
 done
+```
 
+Merge mappings:
+
+```shell
+for p in 70; do
+    for s in 1M 300k 100k 50k 20k 10k; do
+        l=0
+        for n in 1; do
+            for w in 0; do
+                pattern=s$s.l$l.p$p.n$n.w$w
+        
+                cat $dir_mappings/*$pattern.approx.paf > $dir_mappings/45_fish.$pattern.approx.paf 
+            done
+        done
+    done
+done 
+```
+
+Alignment:
+
+```shell
+mkdir -p /gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes/alignment
+
+run_wfmash=/gpfs/projects/bsc18/bsc18995/wfmash/build/bin/wfmash-09e73eb3fcf24b8b7312b8890dd0741933f0d1cd
+dir_mappings=/gpfs/projects/bsc18/bsc18995/vgp/45_fish/mappings
+path_45_fish=/gpfs/projects/bsc18/bsc18995/vgp/45_fish/genomes/45_fish.fa.gz
+for p in 70; do
+    for s in 1M 300k 100k 50k 20k 10k; do
+        l=0
+        for n in 1; do
+            for w in 0; do
+                pattern=s$s.l$l.p$p.n$n.w$w
+                
+                sbatch -c 128 --wrap 'TMPFOLDER=/scratch/tmp/$SLURM_JOBID; cd $TMPFOLDER; \time -v '$run_wfmash' -X '$path_45_fish' '$path_45_fish' -t 128 -s '$s' -l '$l' -p '$p' -n '$n' -w '$w' -i '$dir_mappings'/45_fish.'$pattern'.approx.paf | pigz -c > /gpfs/projects/bsc18/bsc18995/vgp/45_fish/alignment/45_fish.'$pattern'.paf.gz'
+            done
+        done
+    done
+done 
 ```
 
 ```
