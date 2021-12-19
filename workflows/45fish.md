@@ -24,9 +24,9 @@ LIBRARY_PATH=$LIBRARY_PATH:/apps/JEMALLOC/5.2.1/INTEL/lib
 
 cd /gpfs/projects/bsc18/bsc18995/
 cd wfmash
-git checkout 09e73eb3fcf24b8b7312b8890dd0741933f0d1cd
+git checkout 948f1683d14927745aef781cdabeb66ac6c7880b
 cmake -H. -Bbuild && cmake --build build -- -j 48
-mv build/bin/wfmash build/bin/wfmash-09e73eb3fcf24b8b7312b8890dd0741933f0d1cd
+mv build/bin/wfmash build/bin/wfmash-948f1683d14927745aef781cdabeb66ac6c7880b
 cd ..
 ```
 
@@ -224,7 +224,7 @@ cd /lizardfs/guarracino/vgp/45_fish
 module load intel mkl gsl jemalloc htslib
 LIBRARY_PATH=$LIBRARY_PATH:/apps/JEMALLOC/5.2.1/INTEL/lib
 
-run_wfmash=/gpfs/projects/bsc18/bsc18995/wfmash/build/bin/wfmash-09e73eb3fcf24b8b7312b8890dd0741933f0d1cd
+run_wfmash=/gpfs/projects/bsc18/bsc18995/wfmash/build/bin/wfmash-948f1683d14927745aef781cdabeb66ac6c7880b
 dir_mappings=/gpfs/projects/bsc18/bsc18995/vgp/45_fish/mappings
 
 cd /gpfs/projects/bsc18/bsc18995/vgp/45_fish/
