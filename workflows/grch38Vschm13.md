@@ -11,9 +11,15 @@ mkdir -p ~/tools $$ cd ~/tools
 
 git clone --recursive https://github.com/ekg/wfmash.git
 cd wfmash
+
 git checkout 09e73eb3fcf24b8b7312b8890dd0741933f0d1cd
 cmake -H. -Bbuild && cmake --build build -- -j 48
 mv build/bin/wfmash build/bin/wfmash-09e73eb3fcf24b8b7312b8890dd0741933f0d1cd
+
+git checkout 948f1683d14927745aef781cdabeb66ac6c7880b
+cmake -H. -Bbuild && cmake --build build -- -j 48
+mv build/bin/wfmash build/bin/wfmash-948f1683d14927745aef781cdabeb66ac6c7880b
+
 cd ..
 
 git clone --recursive https://github.com/mrvollger/rustybam.git
@@ -24,7 +30,7 @@ cargo build --release
 
 ### BSC
 
-```
+```shell
 module load intel mkl gsl jemalloc htslib cmake gcc/10.2.0
 LIBRARY_PATH=$LIBRARY_PATH:/apps/JEMALLOC/5.2.1/INTEL/lib
 
@@ -40,14 +46,14 @@ cmake -H. -Bbuild && cmake --build build -- -j 128
 
 Create the main folder:
 
-```
+```shell
 mkdir -p /lizardfs/guarracino/vgp/grch38_vs_chm13
 cd /lizardfs/guarracino/vgp/grch38_vs_chm13
 ```
 
 Download and prepare the references:
 
-```
+```shell
 mkdir -p /lizardfs/guarracino/vgp/grch38_vs_chm13/genomes
 cd /lizardfs/guarracino/vgp/grch38_vs_chm13/genomes
 wget -c https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/chm13.draft_v1.1.fasta.gz
@@ -59,7 +65,7 @@ samtools faidx grch38.fa
 
 Download and prepare the annotation:
 
-```
+```shell
 mkdir -p /lizardfs/guarracino/vgp/grch38_vs_chm13/annotation
 cd /lizardfs/guarracino/vgp/grch38_vs_chm13/annotation
 
@@ -69,8 +75,12 @@ zgrep '^#' -v  gencode.v38.annotation.gtf.gz | awk -v OFS='\t' '$3 == "gene" {pr
 
 
 # TODO: masking simulated/modeled regions
-https://www.ncbi.nlm.nih.gov/grc/human - Modeled centromeres and heterochromatin regions
-http://genomeref.blogspot.com/2021/07/one-of-these-things-doest-belong.html also contains a BED file that contains the
+ - Modeled centromeres and heterochromatin regions
+Modeled centromeres and heterochromatin regions (from https://www.ncbi.nlm.nih.gov/grc/human): https://www.ncbi.nlm.nih.gov/projects/genome/assembly/grc/human/data/38/Modeled_regions_for_GRCh38.tsv
+
+ - Regions (with false duplications) that are getting masked to improve the alignment on chr21: https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_GRC_exclusions.bed
+
+ - Info (but broken link to a BED): http://genomeref.blogspot.com/2021/07/one-of-these-things-doest-belong.html also contains a BED file that contains the
 extra falsely duplicated regions on 21p, however the link to the bed file seems broken
 
 
@@ -79,7 +89,7 @@ extra falsely duplicated regions on 21p, however the link to the bed file seems 
 Map. We use `-c < num_of_threads` to allow SLURM to run multiple processes on the same node.
 Indeed, the mapping is limited by the number of chromosomes.
 
-```
+```shell
 cd /lizardfs/guarracino/vgp/grch38_vs_chm13/
 mkdir /lizardfs/guarracino/vgp/grch38_vs_chm13/mappings
 
@@ -104,7 +114,7 @@ done
 
 Evaluate the mappings:
 
-```
+```shell
 path_gencode_genes_target=annotation/gencode.v38.annotation.genes.bed
 
 # Number of GENCODE genes in the target
@@ -145,17 +155,17 @@ mkdir /lizardfs/guarracino/vgp/grch38_vs_chm13/alignment
 query=chm13.fa
 target=grch38.fa
 
-s=200k
+s=500k
 l=0
-p=95
-n=5
+p=75
+n=200
 w=0
 
 prefix=$query-$target.s$s.l$l.p$p.n$n.w$w
 echo $prefix
 
-\time -v ~/tools/wfmash/build/bin/wfmash-09e73eb3fcf24b8b7312b8890dd0741933f0d1cd genomes/${target} genomes/${query} -t 48 -s $s -l $l -p $p -n $n -w $w -i mappings/$prefix.approx.paf > alignment/$prefix.paf
-#\time -v ~/tools/wfmash/build/bin/wfmash-09e73eb3fcf24b8b7312b8890dd0741933f0d1cd genomes/'${target}' genomes/'${query}' -t 48 -s '$s' -l '$l' -p '$p' -n '$n' -w '$w' -i mappings/'$prefix'.approx.paf > alignment/'$prefix'.paf
+\time -v ~/tools/wfmash/build/bin/wfmash-948f1683d14927745aef781cdabeb66ac6c7880b genomes/${target} genomes/${query} -t 48 -s $s -l $l -p $p -n $n -w $w -i mappings/$prefix.approx.paf > alignment/$prefix.paf
+#\time -v ~/tools/wfmash/build/bin/wfmash-948f1683d14927745aef781cdabeb66ac6c7880b genomes/'${target}' genomes/'${query}' -t 48 -s '$s' -l '$l' -p '$p' -n '$n' -w '$w' -i mappings/'$prefix'.approx.paf > alignment/'$prefix'.paf
 
 
 path_gencode_genes_target=annotation/gencode.v38.annotation.genes.bed
