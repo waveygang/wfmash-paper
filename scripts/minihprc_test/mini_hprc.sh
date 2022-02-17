@@ -25,18 +25,18 @@ PATH_VCF_EVALUATION_SH=/lizardfs/guarracino/HPRC/mini_dataset/vcf_evaluation.sh
                 zgrep -P "^chr$i\t" ${DIR_REGIONS}/GRCh38_alldifficultregions.bed.gz | bgzip > ${DIR_REGIONS}/GRCh38_alldifficultregions.chr$i.bed.gz;
         fi
 
-        OUTPUT_DIR=${OUTPUT_DIR}/$PREFIX/chr${i}
+        OUTPUT_DIR_CHR=${OUTPUT_DIR}/$PREFIX/chr${i}
 
-        if [ ! -d ${OUTPUT_DIR} ]; then
+        if [ ! -d ${OUTPUT_DIR_CHR} ]; then
                 #echo $PREFIX
 
-                mkdir -p $OUTPUT_DIR
+                mkdir -p $OUTPUT_DIR_CHR
 
                 FASTA=${DIR_FASTA}/chr${i}hg00.fa.gz
                 PATH_EASY_REGIONS=${DIR_REGIONS}/GRCh38_notinalldifficultregions.chr$i.bed.gz
                 PATH_HARD_REGIONS=${DIR_REGIONS}/GRCh38_alldifficultregions.chr$i.bed.gz
 
-                sbatch -p workers -c 48 --job-name mini$PREFIX --wrap 'bash single_hprc_chr.sh '$FASTA' '$PREFIX' '${PATH_WFMASH}' '$OUTPUT_DIR' '${PATH_EASY_REGIONS}' '${PATH_HARD_REGIONS}' '${PATH_FASTA_PAF_TO_VCF}' '${DIR_TRUTH_VCF}' '${PATH_VCF_PREPROCESS_SH}' '${PATH_VCF_EVALUATION_SH}';'
+                sbatch -p workers -c 48 --job-name mini$PREFIX --wrap 'bash single_hprc_chr.sh '$FASTA' '$PREFIX' '${PATH_WFMASH}' '${OUTPUT_DIR_CHR}' '${PATH_EASY_REGIONS}' '${PATH_HARD_REGIONS}' '${PATH_FASTA_PAF_TO_VCF}' '${DIR_TRUTH_VCF}' '${PATH_VCF_PREPROCESS_SH}' '${PATH_VCF_EVALUATION_SH}';'
         fi
 done
 
