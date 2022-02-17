@@ -3,15 +3,15 @@
 # Variables
 REF=/lizardfs/erikg/HPRC/year1v2genbank/evaluation/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna
 REF_SDF=/lizardfs/erikg/HPRC/year1v2genbank/evaluation/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.sdf
-TRUTH_VCF=/lizardfs/erikg/HPRC/year1v2genbank/evaluation/HG00438.GRCh38_no_alt.deepvariant.vcf.gz
 
 # Inputs
 SAMPLE=$1
-QUERY_VCF=$2
-EASY_REGIONS_BED=$3
-HARD_REGIONS_BED=$4
-OUTPUT_DIR=$5
-PATH_VCF_PREPROCESS_SH=$6
+TRUTH_VCF=$2
+QUERY_VCF=$3
+EASY_REGIONS_BED=$4
+HARD_REGIONS_BED=$5
+OUTPUT_DIR=$6
+PATH_VCF_PREPROCESS_SH=$7
 
 echo "VCF renaming"
 zcat $QUERY_VCF | sed 's/^grch38#//g' | bgzip -c -@ 48 > "$QUERY_VCF".renamed.vcf.gz && tabix "$QUERY_VCF".renamed.vcf.gz

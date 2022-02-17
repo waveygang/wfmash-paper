@@ -5,6 +5,10 @@ PATH_WFMASH=$2
 
 DIR_FASTA=/lizardfs/guarracino/HPRC/mini_dataset
 DIR_REGIONS=/lizardfs/guarracino/HPRC/mini_dataset/union
+
+# From https://s3-us-west-2.amazonaws.com/human-pangenomics/index.html?prefix=submissions/B581EBA7-8BDE-4C7C-9DEA-78B99A051155--Yale_HPP_Year1_Variant_Calls/
+DIR_TRUTH_VCF=/lizardfs/guarracino/HPRC/mini_dataset/truth/
+
 OUTPUT_DIR=/lizardfs/guarracino/HPRC/mini_dataset
 PATH_FASTA_PAF_TO_VCF=/lizardfs/guarracino/HPRC/mini_dataset/fasta+paf2vcf.mod.sh
 PATH_VCF_PREPROCESS_SH=/lizardfs/guarracino/HPRC/mini_dataset/vcf_preprocess.sh
@@ -21,7 +25,7 @@ PATH_VCF_EVALUATION_SH=/lizardfs/guarracino/HPRC/mini_dataset/vcf_evaluation.sh
                 zgrep -P "^chr$i\t" ${DIR_REGIONS}/GRCh38_alldifficultregions.bed.gz | bgzip > ${DIR_REGIONS}/GRCh38_alldifficultregions.chr$i.bed.gz;
         fi
 
-        OUTPUT_DIR=${OUTPUT_DIR}/HG00438_$PREFIX/chr${i}
+        OUTPUT_DIR=${OUTPUT_DIR}/$PREFIX/chr${i}
 
         if [ ! -d ${OUTPUT_DIR} ]; then
                 #echo $PREFIX
@@ -32,7 +36,7 @@ PATH_VCF_EVALUATION_SH=/lizardfs/guarracino/HPRC/mini_dataset/vcf_evaluation.sh
                 PATH_EASY_REGIONS=${DIR_REGIONS}/GRCh38_notinalldifficultregions.chr$i.bed.gz
                 PATH_HARD_REGIONS=${DIR_REGIONS}/GRCh38_alldifficultregions.chr$i.bed.gz
 
-                sbatch -p workers -c 48 --job-name mini$PREFIX --wrap 'bash single_hprc_chr.sh '$FASTA' '$PREFIX' '${PATH_WFMASH}' '$OUTPUT_DIR' '${PATH_EASY_REGIONS}' '${PATH_HARD_REGIONS}' '${PATH_FASTA_PAF_TO_VCF}' '${PATH_VCF_PREPROCESS_SH}' '${PATH_VCF_EVALUATION_SH}';'
+                sbatch -p workers -c 48 --job-name mini$PREFIX --wrap 'bash single_hprc_chr.sh '$FASTA' '$PREFIX' '${PATH_WFMASH}' '$OUTPUT_DIR' '${PATH_EASY_REGIONS}' '${PATH_HARD_REGIONS}' '${PATH_FASTA_PAF_TO_VCF}' '${DIR_TRUTH_VCF}' '${PATH_VCF_PREPROCESS_SH}' '${PATH_VCF_EVALUATION_SH}';'
         fi
 done
 
