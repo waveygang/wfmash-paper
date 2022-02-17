@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Variables
+REF=/lizardfs/erikg/HPRC/year1v2genbank/evaluation/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna
+REF_SDF=/lizardfs/erikg/HPRC/year1v2genbank/evaluation/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.sdf
+TRUTH_VCF=/lizardfs/erikg/HPRC/year1v2genbank/evaluation/HG00438.GRCh38_no_alt.deepvariant.vcf.gz
+
+# Inputs
+SAMPLE=$1
+QUERY_VCF=$2
+EASY_REGIONS_BED=$3
+HARD_REGIONS_BED=$4
+OUTPUT_DIR=$5
+PATH_VCF_PREPROCESS_SH=$6
+
+echo "VCF renaming"
+zcat $QUERY_VCF | sed 's/^grch38#//g' | bgzip -c -@ 48 > "$QUERY_VCF".renamed.vcf.gz && tabix "$QUERY_VCF".renamed.vcf.gz
+
+echo "VCF processing"
+bash ${PATH_VCF_PREPROCESS_SH} "$QUERY_VCF".renamed.vcf.gz "$SAMPLE" 50
+rm "$QUERY_VCF".renamed.vcf.gz
+
+FNAME=$(dirname "$QUERY_VCF")/$(basename "$QUERY_VCF".renamed.vcf.gz)
+PREFIX="${FNAME%.vcf.gz}"
+NORMALIZED_VCF=${PREFIX}.max50.chr1-22.vcf.gz
+
+echo "VCF evaluation"
+
+/gnu/store/3vmp4dw8y0r49h0hbjbgv3bckgvz4k0m-rtg-tools-3.11/rtg vcfeval \
+    -t "$REF_SDF" \
+    -b "$TRUTH_VCF" \
+    -e "$EASY_REGIONS_BED" \
+    -c "$NORMALIZED_VCF" \
+    -T 48 \
+    -o "$OUTPUT_DIR"/easy
+
+/gnu/store/3vmp4dw8y0r49h0hbjbgv3bckgvz4k0m-rtg-tools-3.11/rtg vcfeval \
+    -t "$REF_SDF" \
+    -b "$TRUTH_VCF" \
+    -e "$HARD_REGIONS_BED" \
+    -c "$NORMALIZED_VCF" \
+    -T 48 \
+    -o "$OUTPUT_DIR"/hard
