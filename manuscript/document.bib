@@ -37,6 +37,13 @@
   year      = {2020 (accessed Jul 2021)},
 }
 
+@misc{splitfa-gh,
+    title     = {splitfa},
+    key       = {genomics, genetics, pangenome},
+    note      = {\\\url{https://github.com/AndreaGuarracino/splitfa}},
+    year      = {2021 (accessed Jun 2021)},
+}
+
 @misc{vcflib-gh,
   title     = {vcflib for working with VCF files},
   key       = {genomics, genetics, pangenome},
@@ -441,11 +448,14 @@
   year      = {2018 (accessed Jul 2021)},
 }
 
-@misc{seqwish,
-  title     = {seqwish: Alignment to Variation Graph Inducer},
-  key       = {genomics, genetics, pangenome},
-  note      = {\\\url{https://github.com/ekg/seqwish}},
-  year      = {2018 (accessed Jul 2021)},
+@article{Garrison2022,
+    doi = {10.1101/2022.02.14.480413},
+    url = {https://doi.org/10.1101/2022.02.14.480413},
+    year = {2022},
+    month = feb,
+    publisher = {Cold Spring Harbor Laboratory},
+    author = {Erik Garrison and Andrea Guarracino},
+    title = {Unbiased pangenome graphs}
 }
 
 @misc{gfautil,
@@ -1019,21 +1029,6 @@ http://www.bx.psu.edu/~dcking/man/maf.xhtml
   author={Niu, Feng and Recht, Benjamin and R{\'e}, Christopher and Wright, Stephen J},
   journal={arXiv preprint arXiv:1106.5730},
   year={2011}
-}
-
-@article{Poplin_2018,
-  title={A universal SNP and small-indel variant caller using deep neural networks},
-  volume={36},
-  ISSN={1546-1696},
-  url={http://dx.doi.org/10.1038/nbt.4235},
-  DOI={10.1038/nbt.4235},
-  number={10},
-  journal={Nature Biotechnology},
-  publisher={Springer Science and Business Media LLC},
-  author={Poplin, Ryan and Chang, Pi-Chuan and Alexander, David and Schwartz, Scott and Colthurst, Thomas and Ku, Alexander and Newburger, Dan and Dijamco, Jojo and Nguyen, Nam and Afshar, Pegah T and et al.},
-  year={2018},
-  month={Sep},
-  pages={983–987}
 }
 
 @article{Kojima_2020,
@@ -2280,21 +2275,6 @@ series = {NIPS'13}
   pages={471–475}
 }
 
-@article{Garg_2020,
-  title={Chromosome-scale, haplotype-resolved assembly of human genomes},
-  volume={39},
-  ISSN={1546-1696},
-  url={http://dx.doi.org/10.1038/s41587-020-0711-0},
-  DOI={10.1038/s41587-020-0711-0},
-  number={3},
-  journal={Nature Biotechnology},
-  publisher={Springer Science and Business Media LLC},
-  author={Garg, Shilpa and Fungtammasan, Arkarachai and Carroll, Andrew and Chou, Mike and Schmitt, Anthony and Zhou, Xiang and Mac, Stephen and Peluso, Paul and Hatas, Emily and Ghurye, Jay and et al.},
-  year={2020},
-  month={Dec},
-  pages={309–312}
-}
-
 @article{Li_2018,
   title={Minimap2: pairwise alignment for nucleotide sequences},
   volume={34},
@@ -2323,6 +2303,16 @@ series = {NIPS'13}
   year={2020},
   month={Jul},
   pages={i111–i118}
+}
+
+@article{Jain_2020b,
+    doi = {10.1101/2020.11.01.363887},
+    url = {https://doi.org/10.1101/2020.11.01.363887},
+    year = {2020},
+    month = nov,
+    publisher = {Cold Spring Harbor Laboratory},
+    author = {Chirag Jain and Arang Rhie and Nancy Hansen and Sergey Koren and Adam M. Phillippy},
+    title = {A long read mapping method for highly repetitive reference sequences}
 }
 
 @article{Agoglia_2021,
@@ -2448,3 +2438,129 @@ series = {NIPS'13}
   year={2017}
 }
 
+@article{Langmead2012,
+    doi = {10.1038/nmeth.1923},
+    url = {https://doi.org/10.1038/nmeth.1923},
+    year = {2012},
+    month = mar,
+    publisher = {Springer Science and Business Media {LLC}},
+    volume = {9},
+    number = {4},
+    pages = {357--359},
+    author = {Ben Langmead and Steven L Salzberg},
+    title = {Fast gapped-read alignment with Bowtie 2},
+    journal = {Nature Methods}
+}
+
+@article{MarcoSola2012,
+    doi = {10.1038/nmeth.2221},
+    url = {https://doi.org/10.1038/nmeth.2221},
+    year = {2012},
+    month = oct,
+    publisher = {Springer Science and Business Media {LLC}},
+    volume = {9},
+    number = {12},
+    pages = {1185--1188},
+    author = {Santiago Marco-Sola and Michael Sammeth and Roderic Guig{\'{o}} and Paolo Ribeca},
+    title = {The {GEM} mapper: fast,  accurate and versatile alignment by filtration},
+    journal = {Nature Methods}
+}
+
+@misc{li2013aligning,
+    title={Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM},
+    author={Heng Li},
+    year={2013},
+    eprint={1303.3997},
+    archivePrefix={arXiv},
+    primaryClass={q-bio.GN}
+}
+
+@article{DePristo2011,
+    doi = {10.1038/ng.806},
+    url = {https://doi.org/10.1038/ng.806},
+    year = {2011},
+    month = apr,
+    publisher = {Springer Science and Business Media {LLC}},
+    volume = {43},
+    number = {5},
+    pages = {491--498},
+    author = {Mark A DePristo and Eric Banks and Ryan Poplin and Kiran V Garimella and Jared R Maguire and Christopher Hartl and Anthony A Philippakis and Guillermo del Angel and Manuel A Rivas and Matt Hanna and Aaron McKenna and Tim J Fennell and Andrew M Kernytsky and Andrey Y Sivachenko and Kristian Cibulskis and Stacey B Gabriel and David Altshuler and Mark J Daly},
+    title = {A framework for variation discovery and genotyping using next-generation {DNA} sequencing data},
+    journal = {Nature Genetics}
+}
+
+@article{Simpson2009,
+    doi = {10.1101/gr.089532.108},
+    url = {https://doi.org/10.1101/gr.089532.108},
+    year = {2009},
+    month = feb,
+    publisher = {Cold Spring Harbor Laboratory},
+    volume = {19},
+    number = {6},
+    pages = {1117--1123},
+    author = {Jared T. Simpson and Kim Wong and Shaun D. Jackman and Jacqueline E. Schein and Steven J.M. Jones and {\.{I}}nan{\c{c}} Birol},
+    title = {{ABySS}: A parallel assembler for short read sequence data},
+    journal = {Genome Research}
+}
+
+@article{Armstrong2020,
+    doi = {10.1038/s41586-020-2871-y},
+    url = {https://doi.org/10.1038/s41586-020-2871-y},
+    year = {2020},
+    month = nov,
+    publisher = {Springer Science and Business Media {LLC}},
+    volume = {587},
+    number = {7833},
+    pages = {246--251},
+    author = {Joel Armstrong and Glenn Hickey and Mark Diekhans and Ian T. Fiddes and Adam M. Novak and Alden Deran and Qi Fang and Duo Xie and Shaohong Feng and Josefin Stiller and Diane Genereux and Jeremy Johnson and Voichita Dana Marinescu and Jessica Alf\"{o}ldi and Robert S. Harris and Kerstin Lindblad-Toh and David Haussler and Elinor Karlsson and Erich D. Jarvis and Guojie Zhang and Benedict Paten},
+    title = {Progressive Cactus is a multiple-genome aligner for the thousand-genome era},
+    journal = {Nature}
+}
+
+@article{Li2020,
+    doi = {10.1186/s13059-020-02168-z},
+    url = {https://doi.org/10.1186/s13059-020-02168-z},
+    year = {2020},
+    month = oct,
+    publisher = {Springer Science and Business Media {LLC}},
+    volume = {21},
+    number = {1},
+    author = {Heng Li and Xiaowen Feng and Chong Chu},
+    title = {The design and construction of reference pangenome graphs with minigraph},
+    journal = {Genome Biology}
+}
+
+@inproceedings{Schleimer2003,
+    doi = {10.1145/872757.872770},
+    url = {https://doi.org/10.1145/872757.872770},
+    year = {2003},
+    publisher = {{ACM} Press},
+    author = {Saul Schleimer and Daniel S. Wilkerson and Alex Aiken},
+    title = {Winnowing},
+    booktitle = {Proceedings of the 2003 {ACM} {SIGMOD} international conference on on Management of data  - {SIGMOD} {\textquotesingle}03}
+}
+
+@article{Khl2020,
+    doi = {10.1093/bioinformatics/btaa716},
+    url = {https://doi.org/10.1093/bioinformatics/btaa716},
+    year = {2020},
+    month = aug,
+    publisher = {Oxford University Press ({OUP})},
+    volume = {37},
+    number = {4},
+    pages = {568--569},
+    author = {M A K\"{u}hl and B Stich and D C Ries},
+    editor = {Inanc Birol},
+    title = {Mutation-Simulator: fine-grained simulation of random mutations in any genome},
+    journal = {Bioinformatics}
+}
+
+@article{Cleary2015,
+    doi = {10.1101/023754},
+    url = {https://doi.org/10.1101/023754},
+    year = {2015},
+    month = aug,
+    publisher = {Cold Spring Harbor Laboratory},
+    author = {John G. Cleary and Ross Braithwaite and Kurt Gaastra and Brian S Hilbush and Stuart Inglis and Sean A Irvine and Alan Jackson and Richard Littin and Mehul Rathod and David Ware and Justin M. Zook and Len Trigg and Francisco M. De La Vega},
+    title = {Comparing Variant Call Files for Performance Benchmarking of Next-Generation Sequencing Variant Calling Pipelines}
+}
