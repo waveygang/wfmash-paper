@@ -50,7 +50,7 @@
 
 \subtitle{Genome Analysis}
 
-\title[wfmash: whole-cromosome pairwise aligner]{wfmash: whole-chromosome pairwise alignment using the hierarchical wavefront algorithm}
+\title[Whole-cromosome pairwise alignment]{Whole-chromosome pairwise alignment using the hierarchical wavefront algorithm}
 \author[Guarracino \textit{et~al}.]{
 Andrea~Guarracino\,$^{\orcidlink{0000-0001-9744-131X}\text{\sfb 1}}$
 Njagi~Mwaniki\,$^{\text{\sfb 2}}$,
@@ -78,12 +78,10 @@ $^\ast$To whom correspondence should be addressed.
 
 \abstract{
 \textbf{Motivation:}
-Pairwise alignment of sequences is an important step in many bioinformatics analyses, including pangenome construction.
-Pangenomes are sequence models able to provide a full representation of the mutual alignment of collections of genomes.
-The time and memory required to compute pairwise alignments increase quadratically with the sequence length,
-making it impractical to directly align very long sequences without applying heuristic approaches to first determine possible syntenic regions in the sequences.
-Nevertheless, with the advances in sequencing technologies, new genome assemblies are produced at a high rate,
-pressing for the development of tools able to align sequences of the order of tens of megabases long. \\
+Pairwise alignment is a critical step in studying whole-genome assemblies and their relationships in an unbiased way.
+The time and memory required to compute the pairwise alignments increase quadratically with the sequence length.
+This makes it impractical to align very long sequences without applying heuristic approaches to first determine possible synthenic regions in the sequences.
+Nevertheless, with the advances in sequencing technologies, new whole-genome assemblies are produced at a high rate, pressing for the development of tools able to align sequences of the order of tens of megabases long. \\
 \textbf{Results:}
 Here we present wfmash, a new gap-affine pairwise aligner designed to align DNA sequences at a whole-chromosome scale.
 wfmash applies a hierarchical implementation of the wavefront alignment algorithm to guide the alignment of very long sequences.
@@ -100,20 +98,22 @@ wfmash can be installed via Bioconda \url{https://bioconda.github.io/recipes/wfm
 
 \section{Introduction}
 \label{sec:introduction}
-Many biological analyses take advantage of aligning DNA sequences, ranging from read~mapping~\citep{Langmead2012, li2013aligning, MarcoSola2012} to variant detection~\citep{DePristo2011}, as well as de~novo assembly~\citep{Simpson2009} and pangenome construction~\citep{Armstrong2020, Li2020, pggb-gh}.
+Many biological analyses take advantage of aligning DNA sequences, ranging from read~mapping~\citep{Langmead2012, li2013aligning, MarcoSola2012} to variant detection~\citep{DePristo2011}, as well as de~novo assembly~\citep{Simpson2009} and pangenome construction~\citep{Armstrong2020, Li2020, pggb}.
 Pairwise sequence alignment can be applied to identify similar regions that may indicate functional, structural, and/or evolutionary relationships between two biological sequences.
 In this context, pangenomes model the full set of genomic elements in a given species or clade~\citep{Eizenga_2020}.
 These data structures encode the mutual relationships between all the genomes represented, in contrast to reference-based approaches which relate sequences to a particular genome chosen as reference.
 The unbiased approach allows studying the entire genetic diversity of a population.
-This opportunity, in combination with the massive amount of data available nowadays, presses for the development of tools able to compute pairwise alignment of very long sequences.
+This opportunity, in combination with the massive amount of haplotype-resolved whole-genome assemblies available nowadays~\citep{Garg_2020}, presses for the development of tools able to compute pairwise alignments of very long sequences.
 
-Popular seed-and-extend mapping methods, like Minimap2~\citep{Li_2018}, poorly scale in runtime and memory when generating sensitive alignments for chromosome-scale contigs available thanks to the new sequencing technologies~\citep{Garg_2020}.
-To scale to vertebrate genomes, methods for pangenome construction based on these approaches must first filter out centromeric and other highly-repetitive sequences, in contrast to the pangenome idea of modeling the full genetic variation in the samples.
+Popular seed-and-extend mapping methods, like Minimap2~\citep{Li_2018}, poorly scale in runtime and memory when generating sensitive alignments for chromosome-scale contigs.
+To scale up to vertebrate genomes, pangenome construction pipelines based on these methods must first filter out centromeres and other highly-repetitive sequences that are typical in eukaryotic chromosomes.
+However, removing sequences is in contrast to the pangenome idea of modeling the full genetic variation in the samples.
+%TODO SOMETHING ELSE REGARDING OTHER ALIGNMENT METHODS???????????????????????????????????????????????
 
 In the interest of operating on the full pangenome, and to face the upcoming challenges in pangenome construction, we have developed wfmash, a new gap-affine pairwise tool for aligning DNA sequences at a whole-chromosome scale.
 It supports split-read alignment and gap-affine penalties for insertion and deletions.
-wfmash scales efficiently to large eukaryotic chromosomes while requiring little time and memory, making it suitable to be applied on the pairwise alignment of hundreds of genomes.
-wfmash is a DNA sequence aligner based on the integration of MashMap~\citep{Jain_2018}, a fast approximate sequence mapper for computing local alignment boundaries between long DNA sequences, and the wavefront alignment algorithm (WFA)~\citep{Marco_Sola_2020}, an exact gap-affine algorithm that takes advantage of homologous regions between the sequences to accelerate the alignment process.
+wfmash scales efficiently to large chromosomes while requiring little time and memory, making it suitable to be applied on the pairwise alignment of hundreds of genomes.
+wfmash is based on the integration of MashMap~\citep{Jain_2018}, a fast approximate sequence mapper for computing local alignment boundaries between long DNA sequences, and the wavefront alignment algorithm (WFA)~\citep{Marco_Sola_2020}, an exact gap-affine algorithm that takes advantage of homologous regions between the sequences to accelerate the alignment process.
 
 
 \section{Methods}
@@ -122,88 +122,82 @@ wfmash is a DNA sequence aligner based on the integration of MashMap~\citep{Jain
 wfmash first applies a locality-sensitive hashing, from MashMap, to rapidly determine syntenic region boundaries between long DNA sequences.
 Then, a hierarchical implementation of the WFA allows computing the base-level global alignment of the identified mappings.
 
-\subsection{Approximate mapping and world minimizers}
+\subsection{Approximate mapping}
 Each query sequence is broken into non-overlapping pieces of the requested length.
 These segments are then mapped using MashMap's sliding MinHash mapping algorithm~\citep{Jain_2018}.
-We extended MashMap, incorporating the robust winnowing~\citep{Schleimer2003} in the minimizer downsampling.
-Robust sampling avoids taking too many minimizers in low-complexity substrings, yielding improvements in runtime and memory-usage without affecting accuracy~\citep{Jain_2020}.
+We extended MashMap by incorporating the robust winnowing~\citep{Schleimer2003} in the minimizer sampling.
+Robust sampling avoids taking too many minimizers in low-complexity regions in the sequences, yielding improvements in runtime and memory-usage without affecting accuracy~\citep{Jain_2020}.
 Furthermore, we made it possible to set the number of mappings to return for each segment; this is useful for identifying paralogous regions and homologous relationship between sets of genomes.
 Together with the segment length and the minimum segment estimated identity, these settings allow users to precisely define the mapping space to consider, specifying the characteristics of homologies to compute.
-\\
-FIXME THINGS ON THE FILTERING???
-\\
-FIXME THING ON THE SPLIT READ AND/OR THE MERGING???
-\\
+%TODO THINGS ON THE FILTERING???
+%TODO THING ON THE SPLIT READ AND/OR THE MERGING???
 
-Finally, each mapping location is used as a target for base-level alignment using a hierarchical implementation
-of the WFA.
+\FIXME{World minimizers XXXXXX}
+
+\FIXME{Spaced-seed XXXXXX}
+
 
 \subsection{Base-level alignment with wflambda}
-The time and memory required to compute the base-level alignment increases quadratically with the sequence length.
-The WFA provides an efficient way to decrease the amount of computation required to obtain the optimal alignment between two sequences, reducing the cost to be quadratic in the alignment penalty score of the optimal alignment~\citep{Marco_Sola_2020}.
-This means that the algorithm is very efficient in aligning similar homologous sequences (i.e., sequences with a low alignment penalty score), but high divergence genomes and/or noisy long reads can increase its memory and runtime costs.
+Each mapping location is used as a target for base-level alignment using a hierarchical implementation of the WFA.
+Time and space computational complexities of a base-level alignment are quadratic with respect to the sequence length.
+The WFA provides an efficient way to decrease the amount of computation required to obtain the optimal alignment between two sequences, reducing the computational cost to be quadratic in the alignment penalty score of the optimal alignment~\citep{Marco_Sola_2020}.
+This means that WFA is very efficient in aligning similar homologous sequences (i.e., sequences with a low alignment penalty score), but high divergence genomes and/or noisy long reads can increase its time and memory costs.
 
 To avoid such limitation, wfmash applies a hierarchical WFA, exploiting the WFA to guide the alignment process, but keeping the largest alignment problem size small.
-Rather than directly aligning the whole sequences, it aligns them to each other in small pieces \textit{W}-bps long by applying a global WFA alignment (Figure~1\vphantom{\ref{fig:1}}).
-The whole global alignment is then computed over the full dynamic-programming matrix (high order DP-matrix) at \textit{W}-bps resolution.
-Each cell in the high order DP-matrix corresponds to the alignment of a specific pair of fragments \textit{W}-bps long from the two sequences to align.
-To determine if each cell is a match, and then guiding the \textit{W}-bps resolution alignment, the global alignment using the standard WFA is performed between the two fragments.
+Rather than directly aligning the whole sequences, it aligns them to each other in small pieces \textit{W}-bp long by applying a global WFA alignment (Figure~1\vphantom{\ref{fig:1}}).
+The whole global alignment is then computed over the full dynamic-programming matrix (high order DP-matrix) at \textit{W}-bp resolution.
+Each cell in the high order DP-matrix corresponds to the alignment of a specific pair of fragments \textit{W}-bp long from the two sequences to align.
+
+\input{fig_wflamba}
+
+\subsection{Sparsification}
+To determine if each cell is a match, and then guiding the alignment at \textit{W}-bp resolution, the global alignment is performed between the two fragments with the standard WFA.
 To accelerate the process, an alignment-free comparison of the two fragments is performed first by computing the mash distance between them.
 Cells whose fragments have a high mash distance are considered as mismatches, avoiding computing the corresponding base-level alignments.
 
-Finally, the \textit{W}-bps resolution traceback is applied to determine the set of base-level alignments on the optimal path in the high order DP-matrix.
+\subsection{Patching}
+Finally, the \textit{W}-bp resolution traceback is applied to determine the set of base-level alignments on the optimal path in the high order DP-matrix.
 During the process, a further step is performed for refining the alignment.
 Inaccurate mapping estimation can lead to under-alignment at the beginning and the end of the aligned syntenic region.
 Therefore, WFA is applied by computing semi-global alignments to resolve the mapping boundaries.
 Moreover, the standard WFA is applied to resolve breakpoints of the structural variants when present in the aligned region.
 
-The hierarchical implementation requires only the memory to align the sequences at \textit{W}-bps resolution, limiting the runtime and the memory of the standard WFA by applying it to fragments \textit{W}-bps long.
-This approach is more FIXME flexible than using a fixed-width band (it effectively has a variable bandwidth), requires no heuristic seeding step, and can benefit from parallel exploration of the wavefront.
+\subsection{Complexity}
+The hierarchical implementation requires only the memory to align the sequences at \textit{W}-bp resolution, limiting the runtime and the memory of the standard WFA by applying it to fragments \textit{W}-bp long.
+This approach is more \FIXME{flexible than using a fixed-width band (it effectively has a variable bandwidth), requires no heuristic seeding step}, and can benefit from parallel exploration of the wavefront.
 %TODO 'this approach is more flexible than using a fixed-width band: Not sure about writing it. I would remove it, else we should demonstrate it.
-%TODO 'and can benefit from parallel exploration of the wavefront.' Can we?
-
-\input{fig_sorting}
-
-\subsection{Sparsificatin}
-XXXXXXXXXXXXXXXXXXXXXXX
-
-\subsection{Patching}
-XXXXXXXXXXXXXXXXXXXXXXX
+\\
 
 \section{Results}
 \label{sec:results}
 
 \subsection{Input and output features}
-XXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXX -s, -l, -p, -n, -i, sam/paf
 
-\subsection{liftover completeness experiments}
+\subsection{Liftover completeness}
 XXXXXXXXXXXXXXXXXXXXXXX
 
 \subsection{Pangenome building and evaluation}
-%wfmash/minimap2/lastz/winnomap2 | seqwish | deconstruct | vcfeval
-XXXXXXXXXXXXXXXXXXXXXXX
+We evaluated the performance of wfmash \texttt{90ea671} against Minimap2-v2.20-r1061~\citep{Li_2018} and Winnomap 2.03~\citep{Jain_2020b}, in terms of runtime and memory usage.
+The comparison was performed on both simulated and real datasets. Simulated data allowed evaluating the alignment quality by calculating precision and recall in variant identification.
+The evaluations were performed on a workstation running \FIXME{Ubuntu 20.04 equipped with 64 GB of RAM and an Intel i9-9900K CPU with 8 cores (16 threads)}.
+
+We simulated long sequences from \FIXME{the \textit{Saccharomyces cerevisiae} chromosome IV (S288C strain) and the telomere-to-telomere (T2T) assemblies of the human chromosomes 8}, at different levels of length and divergence (\FIXME{MAYBETable 1 and Table 2}).
+Chromosomes were split into shorter sequences using the splitfa tool (6a0bb67)~\citep{splitfa-gh}.
+In each run, all sequences have the same length, with half of them in reverse complement respect to the source chromosome.
+Single nucleotide variants~(SNVs), small indels, and structural variants~(SVs) were introduced using the Mutation-Simulator script~\citep{Khl2020}.
+\FIXME{Structural variants (SVs) were applied using the SURVIVOR benchmarking tool}~\citep{Jeffares2017}.
+
+To evaluate the correctness of the alignments, we used the pairwise alignment of the input sequences from each run to build a pangenome graph and identified the variants embedded in it.
+The graphs were built with seqwish~\citep{Garrison2022}, a lossless pangenome graph inducer.
+We called SNVs, small indels, and SVs using vg deconstruct~\citep{Garrison:2018}, evaluating the false-negative and false-positive rates using vcfeval~\citep{Cleary2015} for SNVs and small indels, and \FIXME{XXXXX for SVs}.
+
 
 \subsection{Pangenome alignment (ONT vs HPRC)}
-XXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXX
 
 
 \begin{comment}
-We evaluated the performance of wfmash \texttt{90ea671} against Minimap2-v2.20-r1061~\citep{Li_2018} and Winnomap 2.03~\citep{Jain_2020b}, in terms of runtime and memory usage.
-The comparison was performed on both simulated and real datasets. Simulated data allowed evaluating the alignment quality by calculating precision and recall in variant identification.
-The evaluations were performed on a workstation running Ubuntu 20.04 equipped with 64 GB of RAM and an Intel i9-9900K CPU with 8 cores (16 threads).
-All commands are provided in the Supplementary Material.
-
-\subsection{Simulated data}
-We simulated long sequences from the \textit{Saccharomyces cerevisiae} chromosome IV (S288C strain) and the telomere-to-telomere (T2T) assemblies of the human chromosomes 8, at different levels of length and divergence (\FIXME{MAYBETable 1 and Table 2}).
-Chromosomes were split into shorter sequences using the splitfa tool (random\_segment\_length branch, 6a0bb67)~\citep{splitfa-gh}.
-In each run, all sequences have the same length, with 50\% of them in reverse complement respect to the source chromosome. Single nucleotide variants~(SNVs), small indels, and structural variants~(SVs) were introduced using the Mutation-Simulator script~\citep{Khl2020}.
-%, while structural variants (SVs) were applied using the SURVIVOR benchmarking tool~\citep{28117401}.
-
-To evaluate the correctness of the alignments, in each run we used the pairwise alignment of the input sequences to build a pangenome graph and identify the variants embedded in it.
-The graphs were built using~\citep{Garrison2022}.
-seqwish implements a lossless conversion from pairwise alignments between sequences to a pangenome graph encoding the sequences and their alignments.
-We called SNVs, small indels, and SVs using vg deconstruct~\citep{Garrison:2018}, evaluating the false-negative and false-positive rates using vcfeval~\citep{Cleary2015} for SNVs and small indels, and FIXME XXXXX for SVs.
-
 
 \begin{table}[!t]
     \processtable{
@@ -238,11 +232,11 @@ We called SNVs, small indels, and SVs using vg deconstruct~\citep{Garrison:2018}
 
 We implemented a novel gap-affine pairwise aligner, wfmash, to accelerate the computation of the mutual alignment of collections of genomes, a step required for constructing pangenome models.
 We have demonstrated that it efficiently performs with contigs representing full human chromosomes of 88 phased haplotypes from the Human Pangenome Reference Consortium year 1 assembly.
-Indeed, thanks to its efficiency, wfmash is already successfully applied in our pangenome graphs building pipeline~\citep{pggb-gh}.
+Indeed, thanks to its efficiency, wfmash is already successfully applied in our pangenome graphs building pipeline~\citep{pggb}.
 No less important, pairwise alignment is a central step of many bioinformatics applications, making our aligner a scalable solution to face the increasing yields of sequencing technologies in the coming years.
 
 
-\subsection{Mashmap limits and potential improvements}
+\subsection{Limits and potential improvements}
 
 XXXXX
 
@@ -260,10 +254,7 @@ We gratefully acknowledge support from NIH/NIDA U01DA047638 (EG) and efforts by 
 
 \section*{Data availability}
 
-%Data used to build human pangenome graphs: \url{https://github.com/human-pangenomics/HPP_Year1_Data_Freeze_v1.0}. 
-%The graphs we generated the figures from: \url{https://s3-us-west-2.amazonaws.com/human-pangenomics/index.html?prefix=pangenomes/scratch/2021_11_04_pggb_wgg.87/}.
-Code and links to data resources used to build this manuscript and its figures, can be found in the paper's public repository: \url{https://github.com/AndreaGuarracino/wfmash-paper}.
-
+Code and links to data resources used to build this manuscript and its figures can be found in the paper's public repository: \url{https://github.com/AndreaGuarracino/wfmash-paper}.
 
 \bibliographystyle{natbib}
 
