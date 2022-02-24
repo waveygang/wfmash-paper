@@ -36,7 +36,7 @@ PATH_VCF_EVALUATION_SH=/lizardfs/guarracino/HPRC/mini_dataset/vcf_evaluation.sh
                 PATH_EASY_REGIONS=${DIR_REGIONS}/GRCh38_notinalldifficultregions.chr$i.bed.gz
                 PATH_HARD_REGIONS=${DIR_REGIONS}/GRCh38_alldifficultregions.chr$i.bed.gz
 
-                sbatch -p workers -c 48 --job-name minihprc --wrap 'bash single_hprc_chr.sh '$FASTA' '$PREFIX' '${PATH_WFMASH}' '${OUTPUT_DIR_CHR}' '${PATH_EASY_REGIONS}' '${PATH_HARD_REGIONS}' '${PATH_FASTA_PAF_TO_VCF}' '${DIR_TRUTH_VCF}' '${PATH_VCF_PREPROCESS_SH}' '${PATH_VCF_EVALUATION_SH}';'
+                sbatch -p workers -c 12 --job-name minihprc --wrap 'bash single_hprc_chr.sh '$i' '$FASTA' '$PREFIX' '${PATH_WFMASH}' '${OUTPUT_DIR_CHR}' '${PATH_EASY_REGIONS}' '${PATH_HARD_REGIONS}' '${PATH_FASTA_PAF_TO_VCF}' '${DIR_TRUTH_VCF}' '${PATH_VCF_PREPROCESS_SH}' '${PATH_VCF_EVALUATION_SH}';'
         fi
 done
 
