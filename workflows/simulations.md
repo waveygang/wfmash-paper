@@ -8,17 +8,46 @@ Installation:
 mkdir -p ~/tools
 cd ~/tools
 
-# splitfa
+git clone --recursive https://github.com/ekg/wfmash.git
+cd wfmash
+git checkout 25757d3500a84ec1bea64de4fe95782d0b0eb885
+cmake -H. -Bbuild && cmake --build build -- -j 48
+mv build/bin/wfmash build/bin/wfmash-25757d3500a84ec1bea64de4fe95782d0b0eb885
+cd ..
+
+git clone --recursive https://github.com/ekg/seqwish.git
+cd seqwish
+git checkout 88cd0ea5f086cadfaf21c4c363d71536a1a7ea09
+cmake -H. -Bbuild && cmake --build build -- -j 48
+mv bin/seqwish bin/seqwish-88cd0ea5f086cadfaf21c4c363d71536a1a7ea09
+cd ..
+
 git clone --recursive https://github.com/AndreaGuarracino/splitfa.git
 cd splitfa
 git checkout b6545722c429888dbe292fa2cdb265c6ea2c7004
 cargo build --release
+mv target/release/splitfa target/release/splitfa-b6545722c429888dbe292fa2cdb265c6ea2c7004
 cd ..
 
 git clone --recursive https://github.com/natir/fpa.git
 cd fpa
 git checkout a273badb68c429683369051a1d389ce186f0dd6a
 cargo build --release
+mv target/release/fpa target/release/fpa-a273badb68c429683369051a1d389ce186f0dd6a
+cd ..
+
+git clone --recursive https://github.com/ekg/fastix.git
+cd fastix
+git checkout 331c1159ea16625ee79d1a82522e800c99206834
+cargo build --release
+mv target/release/fastix target/release/fastix-331c1159ea16625ee79d1a82522e800c99206834
+cd ..
+
+git clone https://github.com/marbl/Winnowmap.git
+cd Winnowmap
+git checkout b373a7790aed2f5cb68ee63cb5f414ac9d63ec5a
+make -j 48
+mv bin/ bin-b373a7790aed2f5cb68ee63cb5f414ac9d63ec5a/
 cd ..
 
 guix install bcftools
@@ -38,13 +67,18 @@ GUIX_PACKAGE_PATH=. guix install rtg-tools
 Versions:
 
 ```shell
-(echo wfmash bcftools vcfrandomsample minimap2 mutation-simulator.py | tr ' ' '\n') | while read tool; do ls -l $(which $tool); done | cut -f 13 -d ' '
+(echo vg bcftools vcfrandomsample minimap2 mutation-simulator.py | tr ' ' '\n') | while read tool; do ls -l $(which $tool); done | cut -f 13 -d ' '
+    #/gnu/store/nkfg1wg76zqaig43qgslkwcag9rb9fzz-wfmash-0.6.0+e9a5b02-17/bin/wfmash
+    /gnu/store/ilksi2bdpsqkyf7r72lkcknndayrpjq3-bcftools-1.12/bin/bcftools
+    /gnu/store/nczgf2j577bfw3g84f2b6r774bsmj1a6-vcflib-1.0.2/bin/vcfrandomsample
+    /gnu/store/fa1ng6dhv2lrqc8pfhg9iprs85ac055x-minimap2-2.23/bin/minimap2
+    /gnu/store/k2cs3b88a1ncvalavn85qqkil5h4d03v-mutation-simulator-2.0.3-1.9cb6bd2/bin/mutation-simulator.py
 
-/gnu/store/nkfg1wg76zqaig43qgslkwcag9rb9fzz-wfmash-0.6.0+e9a5b02-17/bin/wfmash
-/gnu/store/ilksi2bdpsqkyf7r72lkcknndayrpjq3-bcftools-1.12/bin/bcftools
-/gnu/store/nczgf2j577bfw3g84f2b6r774bsmj1a6-vcflib-1.0.2/bin/vcfrandomsample
-/gnu/store/fa1ng6dhv2lrqc8pfhg9iprs85ac055x-minimap2-2.23/bin/minimap2
-/gnu/store/k2cs3b88a1ncvalavn85qqkil5h4d03v-mutation-simulator-2.0.3-1.9cb6bd2/bin/mutation-simulator.py
+ls -l $(which vg)
+  /home/guarracino/tools/vg
+
+/home/guarracino/tools/vg version | head -n 1
+  vg version v1.36.0 "Cibottola"
 ```
 
 ### Obtain the data
@@ -64,34 +98,50 @@ cd /lizardfs/guarracino/pggb_grant/genomes
 
 wget -c https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/chm13.draft_v1.1.fasta.gz
 gunzip chm13.draft_v1.1.fasta.gz
-samtools faidx chm13.draft_v1.1.fasta
+mv chm13.draft_v1.1.fasta chm13.draft_v1.1.fa
+samtools faidx chm13.draft_v1.1.fa
+
+samtools faidx chm13.draft_v1.1.fa chr8 > chm13#chr8.fa
+samtools faidx chm13#chr8.fa
 
 cd ..
 ```
 
 ### Paths and variables
 
-```shell
-# Tools
-run_splitfa=~/tools/splitfa/target/release/splitfa
-run_fpa=~/tools/fpa/target/release/splitfa
-run_mutation_simulator_py=/gnu/store/k2cs3b88a1ncvalavn85qqkil5h4d03v-mutation-simulator-2.0.3-1.9cb6bd2/bin/mutation-simulator.py
-run_fastix=~/tools/fastix/target/release/fastix
-run_bcftools=/gnu/store/ilksi2bdpsqkyf7r72lkcknndayrpjq3-bcftools-1.12/bin/bcftools
-run_wfmash=/gnu/store/nkfg1wg76zqaig43qgslkwcag9rb9fzz-wfmash-0.6.0+e9a5b02-17/bin/wfmash
-run_vcfrandomsample=/gnu/store/nczgf2j577bfw3g84f2b6r774bsmj1a6-vcflib-1.0.2/bin/vcfrandomsample
-run_minimap2=/gnu/store/fa1ng6dhv2lrqc8pfhg9iprs85ac055x-minimap2-2.23/bin/minimap2
-run_rtg=/gnu/store/mriq5x6l7kzz51d1z64cvl5qx3d6ylc9-rtg-tools-3.11/rtg
+Choose the input fasta:
 
-# Input
+```shell
 assembly='CHM13_v1.1'
 species='Homo sapiens'
-path_input_fasta=/lizardfs/guarracino/pggb_grant/genomes/chm13.draft_v1.1.fasta
-path_input_sdf=/lizardfs/guarracino/pggb_grant/chm13.draft_v1.1.sdf
+
+#path_input_fasta=/lizardfs/guarracino/pggb_grant/genomes/chm13.draft_v1.1.fa
+#path_input_sdf=/lizardfs/guarracino/pggb_grant/chm13.draft_v1.1.sdf
+
+path_input_fasta=/lizardfs/guarracino/pggb_grant/genomes/chm13#chr8.fa
+path_input_sdf=/lizardfs/guarracino/pggb_grant/chm13#chr8.sdf
+```
+
+Set paths:
+
+```shell
+# Tools
+run_splitfa=~/tools/splitfa/target/release/splitfa-b6545722c429888dbe292fa2cdb265c6ea2c7004
+run_fpa=~/tools/fpa/target/release/fpa-a273badb68c429683369051a1d389ce186f0dd6a
+run_mutation_simulator_py=/gnu/store/k2cs3b88a1ncvalavn85qqkil5h4d03v-mutation-simulator-2.0.3-1.9cb6bd2/bin/mutation-simulator.py
+run_fastix=~/tools/fastix/target/release/fastix-331c1159ea16625ee79d1a82522e800c99206834
+run_bcftools=/gnu/store/ilksi2bdpsqkyf7r72lkcknndayrpjq3-bcftools-1.12/bin/bcftools
+run_wfmash=~/tools/wfmash/build/bin/wfmash-25757d3500a84ec1bea64de4fe95782d0b0eb885
+run_seqwish=~/tools/seqwish/bin/seqwish-88cd0ea5f086cadfaf21c4c363d71536a1a7ea09
+run_vcfrandomsample=/gnu/store/nczgf2j577bfw3g84f2b6r774bsmj1a6-vcflib-1.0.2/bin/vcfrandomsample
+run_minimap2=/gnu/store/fa1ng6dhv2lrqc8pfhg9iprs85ac055x-minimap2-2.23/bin/minimap2
+run_meryl=~/tools/Winnowmap/bin-b373a7790aed2f5cb68ee63cb5f414ac9d63ec5a/meryl
+run_winnomap2=~/tools/Winnowmap/bin-b373a7790aed2f5cb68ee63cb5f414ac9d63ec5a/winnowmap
+run_rtg=/gnu/store/mriq5x6l7kzz51d1z64cvl5qx3d6ylc9-rtg-tools-3.11/rtg
 
 # Variables
 threads=48
-name_input_fasta=$(basename $path_input_fasta .fasta)
+name_input_fasta=$(basename $path_input_fasta .fa)
 
 divergences=(
 #  0.001
@@ -263,7 +313,7 @@ do
 	  echo $path_paf;
 	  
 	  # Align and filter short alignments
-	  sbatch -p workers -c $threads --wrap '\time -v '$run_minimap2' '$path_input_fa_gz' '$path_input_fa_gz' -t '$threads' -c -x '$preset' -X 2> alignments/minimap2/minimap2.'$divergence'.l'${len}'.log > '$path_paf'; for l in 50000 100000 200000 300000 500000; do cat '$path_paf' | '$run_fpa' drop -l $l > alignments/minimap2/'${name_input_fasta}'+samples_'$divergence'.l'${len}'.drop'$l'.paf; done;'
+	  sbatch -p workers -c $threads --job-name minimap2 --wrap '\time -v '$run_minimap2' '$path_input_fa_gz' '$path_input_fa_gz' -t '$threads' -c -x '$preset' -X 2>> alignments/minimap2/'$name_input_fasta'.minimap2.'$divergence'.l'${len}'.log > '$path_paf'; for l in 50000 100000 200000 300000 500000; do cat '$path_paf' | '$run_fpa' drop -l $l > alignments/minimap2/'${name_input_fasta}'+samples_'$divergence'.l'${len}'.drop$l.paf; done;'
 	done;
 done
 ```
@@ -271,7 +321,6 @@ done
 `winnomap2`:
 
 ```shell
-# ToDo to sbatcherize
 mkdir -p alignments/winnomap2
 
 $run_meryl count k=19 output ${name_input_fasta}.merylDB $path_input_fasta
@@ -289,12 +338,9 @@ do
         path_input_fa_gz=assemblies/${name_input_fasta}+samples_$divergence.l${len}.fa.gz;
         path_paf=alignments/winnomap2/${name_input_fasta}+samples_$divergence.l${len}.drop0.paf;
         echo $path_paf;
-        \time -v $run_winnomap2 -W ${name_input_fasta}.repetitive_k19.txt $path_input_fa_gz $path_input_fa_gz -t $threads -c -x $preset -X 2>> alignments/winnomap2/winnomap2.log > $path_paf;
         
-        # Filter short alignments
-        for l in 50000 100000 200000 300000 500000; do
-          cat $path_paf | fpa drop -l $l > alignments/winnomap2/${name_input_fasta}+samples_$divergence.l${len}.drop$l.paf;
-        done;
+        # Align and filter short alignments
+        sbatch -p workers -c $threads --job-name winnomap2 --wrap '\time -v '$run_winnomap2' -W '${name_input_fasta}'.repetitive_k19.txt '$path_input_fa_gz' '$path_input_fa_gz' -t '$threads' -c -x '$preset' -X 2>> alignments/winnomap2/'$name_input_fasta'.winnomap2.'$divergence'.l'${len}'.log  > '$path_paf'; for l in 50000 100000 200000 300000 500000; do cat '$path_paf' | '$run_fpa' drop -l $l > alignments/winnomap2/'${name_input_fasta}'+samples_'$divergence'.l'${len}'.drop$l.paf; done;'
 	done;
 done
 ```
@@ -303,6 +349,7 @@ done
 
 ```shell
 mkdir -p alignments/wfmash
+
 for index in ${!divergences[*]};
 do
 	divergence=${divergences[$index]}
@@ -314,20 +361,22 @@ do
         path_input_fa_gz=assemblies/${name_input_fasta}+samples_$divergence.l${len}.fa.gz;
         path_paf=alignments/wfmash/${name_input_fasta}+samples_$divergence.l${len}.paf;
         echo $path_paf;
-        sbatch -p highmem -w octopus11 -c $threads --wrap '\time -v '$run_wfmash' '$path_input_fa_gz' '$path_input_fa_gz' -t '$threads' -s 100k -l 300k -p '$identity' -X -n '$num_haplotypes' 2>> alignments/wfmash/wfmash.'$divergence'.l'${len}'.log > '$path_paf;
+        sbatch -p workers -c $threads --job-name wfmash --wrap '\time -v '$run_wfmash' '$path_input_fa_gz' '$path_input_fa_gz' -t '$threads' -s 100k -l 300k -p '$identity' -X -n '$num_haplotypes' 2>> alignments/wfmash/'$name_input_fasta'.wfmash.'$divergence'.l'${len}'.log > '$path_paf;
 	done;
 done
 ```
 
 ```shell
 # Check
-grep 'Elapsed (wall clock)' alignments/*/*log
-grep 'Maximum resident set size (kbytes)' alignments/*/*log
+grep 'Elapsed (wall clock)' alignments/*/*log | column -t
+grep 'Maximum resident set size (kbytes)' alignments/*/*log | column -t
 ```
 
 ## Graph induction
 
 ```shell
+cd /scratch
+
 for index in ${!divergences[*]};
 do
 	divergence=${divergences[$index]}
@@ -346,7 +395,7 @@ do
 	    path_input_paf=alignments/$aligner/${name_input_fasta}+samples_$divergence.l${len}.paf;
 	    path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.gfa;
 	    echo $path_gfa;
-	    seqwish -t $threads -s $path_input_fa_gz -p $path_input_paf -k 0 -g $path_gfa -B 50M;
+	    $run_seqwish -t $threads -s /lizardfs/guarracino/pggb_grant/$path_input_fa_gz -p /lizardfs/guarracino/pggb_grant/$path_input_paf -k 0 -g $path_gfa -B 50M;
 	  done;
 	done;
 
@@ -355,14 +404,16 @@ do
 	  for idx_len in ${!lengths[*]}; do
 	    len=${lengths[$idx_len]};
 	    path_input_fa_gz=assemblies/${name_input_fasta}+samples_$divergence.l${len}.fa.gz;
-	    for l in 0 50000 100000 200000 300000 500000; do
+	    for l in 50000 100000 200000 300000 500000; do
 	      path_input_paf=alignments/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.paf;
 	      path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.gfa;
 	      echo $path_gfa;
-	      seqwish -t $threads -s $path_input_fa_gz -p $path_input_paf -k 0 -g $path_gfa -B 50M;
+	      $run_seqwish -t $threads -s /lizardfs/guarracino/pggb_grant/$path_input_fa_gz -p /lizardfs/guarracino/pggb_grant/$path_input_paf -k 0 -g $path_gfa -B 50M;
 	    done;
 	  done;
     done;
+    
+    mv graphs/ /lizardfs/guarracino/pggb_grant/
 done
 ```
 
@@ -386,8 +437,8 @@ do
             len=${lengths[$idx_len]};
             path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.gfa;
             path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.${seq_name}.vcf.gz;
-            echo $path_vcf_gz;
-            vg deconstruct -e -a -p $seq_name -A sampleA $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
+            echo $path_vcf_gz $seq_name;
+            vg deconstruct -e -a -p $seq_name $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
             done
         done;
         
@@ -395,11 +446,11 @@ do
           mkdir -p variants/$aligner;
           for idx_len in ${!lengths[*]}; do
             len=${lengths[$idx_len]};
-            for l in 0 50000 100000 200000 300000 500000; do
+            for l in 50000 100000 200000 300000 500000; do
               path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.gfa;
               path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.${seq_name}.drop$l.vcf.gz;
-              echo $path_vcf_gz;
-              vg deconstruct -e -a -p $seq_name -A sampleA $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
+              echo $path_vcf_gz $seq_name;
+              vg deconstruct -e -a -p $seq_name $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
             done;
           done;
         done;
