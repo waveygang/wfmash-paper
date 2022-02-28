@@ -131,7 +131,7 @@ run_fpa=~/tools/fpa/target/release/fpa-a273badb68c429683369051a1d389ce186f0dd6a
 run_mutation_simulator_py=/gnu/store/k2cs3b88a1ncvalavn85qqkil5h4d03v-mutation-simulator-2.0.3-1.9cb6bd2/bin/mutation-simulator.py
 run_fastix=~/tools/fastix/target/release/fastix-331c1159ea16625ee79d1a82522e800c99206834
 run_bcftools=/gnu/store/ilksi2bdpsqkyf7r72lkcknndayrpjq3-bcftools-1.12/bin/bcftools
-run_wfmash=~/tools/wfmash/build/bin/wfmash-a7b3215b8d34f23f9865d2ea96dcdb36137cb246
+run_wfmash=/home/guarracino/tools/wfmash/build/bin/wfmash-a7b3215b8d34f23f9865d2ea96dcdb36137cb246
 run_seqwish=~/tools/seqwish/bin/seqwish-88cd0ea5f086cadfaf21c4c363d71536a1a7ea09
 run_vcfrandomsample=/gnu/store/nczgf2j577bfw3g84f2b6r774bsmj1a6-vcflib-1.0.2/bin/vcfrandomsample
 run_minimap2=/gnu/store/7xpn4bkg6jknk3mzdk0alkrxz5i40j8c-minimap2-2.24/bin/minimap2
@@ -362,10 +362,15 @@ do
 	for idx_len in ${!lengths[*]}; do len=${lengths[$idx_len]};
         path_input_fa_gz=/lizardfs/guarracino/pggb_grant/assemblies/${name_input_fasta}+samples_$divergence.l${len}.fa.gz;
         dir_paf=/lizardfs/guarracino/pggb_grant/alignments/wfmash;
-        path_name=${name_input_fasta}+samples_$divergence.l${len}.paf;
-        echo $path_name;
         
-        sbatch -p workers -c $threads --job-name wfmash --wrap 'hostname; cd /scratch; \time -v '$run_wfmash' '$path_input_fa_gz' '$path_input_fa_gz' -t '$threads' -s 100k -l 300k -p '$identity' -X -n '$num_haplotypes' 2> '$dir_paf'/'$name_input_fasta'.wfmash.'$divergence'.l'${len}'.log > '$path_name'; mv '$path_name' '$dir_paf;
+        for s in 5k 10k 20k 50k 100k; do
+          for p in 95 98; do
+            path_name=${name_input_fasta}+samples_$divergence.l${len}.s$s.p$p.paf;
+            echo $path_name;
+            
+            sbatch -p workers -c $threads --job-name wfmash --wrap 'hostname; cd /scratch; \time -v '$run_wfmash' '$path_input_fa_gz' '$path_input_fa_gz' -t '$threads' -s '$s' -p '$p' -X -n '$num_haplotypes' 2> '$dir_paf'/'$name_input_fasta'.wfmash.'$divergence'.l'${len}'.log > '$path_name'; mv '$path_name' '$dir_paf;
+          done
+        done
 	done;
 done
 ```
@@ -401,10 +406,17 @@ do
 	  for idx_len in ${!lengths[*]}; do
 	    len=${lengths[$idx_len]};
 	    path_input_fa_gz=assemblies/${name_input_fasta}+samples_$divergence.l${len}.fa.gz;
-	    path_input_paf=alignments/$aligner/${name_input_fasta}+samples_$divergence.l${len}.paf;
-	    path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.gfa;
-	    echo $path_gfa;
-	    $run_seqwish -t $threads -s /lizardfs/guarracino/pggb_grant/$path_input_fa_gz -p /lizardfs/guarracino/pggb_grant/$path_input_paf -k 0 -g $path_gfa -B 50M -P;
+	    
+	    for s in 5k 10k 20k 50k 100k; do
+          for p in 95 98; do
+            path_name=${name_input_fasta}+samples_$divergence.l${len}.s$s.p$p.paf;
+	    
+            path_input_paf=alignments/$aligner/${name_input_fasta}+samples_$divergence.l${len}.s$s.p$p.paf;
+            path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.s$s.p$p.gfa;
+            echo $path_gfa;
+            $run_seqwish -t $threads -s /lizardfs/guarracino/pggb_grant/$path_input_fa_gz -p /lizardfs/guarracino/pggb_grant/$path_input_paf -k 0 -g $path_gfa -B 50M -P;
+	      done
+	    done
 	  done;
 	done;
     mv graphs/wfmash/* /lizardfs/guarracino/pggb_grant/graphs/wfmash/
@@ -414,7 +426,7 @@ do
 	  for idx_len in ${!lengths[*]}; do
 	    len=${lengths[$idx_len]};
 	    path_input_fa_gz=assemblies/${name_input_fasta}+samples_$divergence.l${len}.fa.gz;
-	    for l in 50000 100000 200000 300000 500000; do
+	    for l in 0 50000 100000 200000 300000 500000; do
 	      path_input_paf=alignments/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.paf;
 	      path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.gfa;
 	      echo $path_gfa;
@@ -447,18 +459,23 @@ do
       mkdir -p variants/$aligner;
       for idx_len in ${!lengths[*]}; do
         len=${lengths[$idx_len]};
-        path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.gfa;
-        path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.vcf.gz;
-        echo $path_vcf_gz;
-        vg deconstruct -e -a -P 'chr' -H '#' $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
+        
+        for s in 5k 10k 20k 50k 100k; do
+          for p in 95 98; do
+            path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.s$s.p$p.gfa;
+            path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.s$s.p$p.vcf.gz;
+            echo $path_vcf_gz;
+            vg deconstruct -e -a -P 'chr' -H '#' $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
+          done
         done
+      done
     done;
     
     for aligner in minimap2 winnomap2; do
       mkdir -p variants/$aligner;
       for idx_len in ${!lengths[*]}; do
         len=${lengths[$idx_len]};
-        for l in 50000 100000 200000 300000 500000; do
+        for l in 0 50000 100000 200000 300000 500000; do
           path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.gfa;
           path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.vcf.gz;
           echo $path_vcf_gz;
@@ -475,7 +492,7 @@ do
 #            path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.gfa;
 #            path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.${seq_name}.vcf.gz;
 #            echo $path_vcf_gz $seq_name;
-#            vg deconstruct -e -a -p $seq_name -P -H '!' $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
+#            vg deconstruct -e -a -p $seq_name -P -H '#' $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
 #            done
 #        done;
 #        
@@ -487,7 +504,7 @@ do
 #              path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.gfa;
 #              path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.${seq_name}.drop$l.vcf.gz;
 #              echo $path_vcf_gz $seq_name;
-#              vg deconstruct -e -a -p $seq_name -H '!' $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
+#              vg deconstruct -e -a -p $seq_name -H '#' $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
 #            done;
 #          done;
 #        done;
@@ -512,22 +529,29 @@ do
     for aligner in wfmash; do
       mkdir -p variants/$aligner;
       for idx_len in ${!lengths[*]}; do 
-        len=${lengths[$idx_len]}; 
-        path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.vcf.gz; 
+        len=${lengths[$idx_len]};
+        
         for index_s in ${!samples[*]}; do 
           sample=${samples[$index_s]}; 
           samplename=sample$sample;
           path_truth_mut_vcf_gz=samples/$name_output.$samplename.vcf.gz;
-          echo $aligner $len $sample
-          $run_rtg vcfeval -b $path_truth_mut_vcf_gz -c $path_vcf_gz -t $path_input_sdf --sample "$samplename,$samplename" -o evaluations/$aligner/${name_output}_$samplename.l${len}; 
-        done; 
+          
+          for s in 5k 10k 20k 50k 100k; do
+            for p in 95 98; do
+              path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.s$s.p$p.vcf.gz;
+          
+              echo $aligner $len $sample
+              $run_rtg vcfeval -b $path_truth_mut_vcf_gz -c $path_vcf_gz -t $path_input_sdf --sample "$samplename,$samplename" -o evaluations/$aligner/${name_output}_$samplename.l${len}.s$s.p$p; 
+            done; 
+          done;
+        done;
       done; 
     done;
 
-    for aligner in minimap2 winnomap2; do
+    for aligner in minimap2; do
       mkdir -p variants/$aligner; 
       for idx_len in ${!lengths[*]}; do
-        for l in 50000 100000 200000 300000 500000; do
+        for l in 0 50000 100000 200000 300000 500000; do
           len=${lengths[$idx_len]}; 
           path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.vcf.gz; 
           for index_s in ${!samples[*]}; do
@@ -577,5 +601,5 @@ do
 done
 
 
-grep None evaluations/*/*/summary.txt | grep sampleA | grep l5000000 | column -t
+grep None evaluations/*/*/summary.txt | grep sampleA | column -t
 ```
