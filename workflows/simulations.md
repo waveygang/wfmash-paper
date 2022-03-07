@@ -116,10 +116,8 @@ assembly='CHM13_v1.1'
 species='Homo sapiens'
 
 #path_input_fasta=/lizardfs/guarracino/pggb_grant/genomes/chm13.draft_v1.1.fa
-#path_input_sdf=/lizardfs/guarracino/pggb_grant/chm13.draft_v1.1.sdf
 
 path_input_fasta=/lizardfs/guarracino/pggb_grant/genomes/chm13#chr8.fa
-path_input_sdf=/lizardfs/guarracino/pggb_grant/chm13#chr8.sdf
 ```
 
 Set paths:
@@ -127,16 +125,17 @@ Set paths:
 ```shell
 # Tools
 run_splitfa=~/tools/splitfa/target/release/splitfa-b6545722c429888dbe292fa2cdb265c6ea2c7004
-run_fpa=~/tools/fpa/target/release/fpa-a273badb68c429683369051a1d389ce186f0dd6a
 run_mutation_simulator_py=/gnu/store/k2cs3b88a1ncvalavn85qqkil5h4d03v-mutation-simulator-2.0.3-1.9cb6bd2/bin/mutation-simulator.py
 run_fastix=~/tools/fastix/target/release/fastix-331c1159ea16625ee79d1a82522e800c99206834
 run_bcftools=/gnu/store/ilksi2bdpsqkyf7r72lkcknndayrpjq3-bcftools-1.12/bin/bcftools
-run_wfmash=/home/guarracino/tools/wfmash/build/bin/wfmash-a7b3215b8d34f23f9865d2ea96dcdb36137cb246
-run_seqwish=~/tools/seqwish/bin/seqwish-88cd0ea5f086cadfaf21c4c363d71536a1a7ea09
 run_vcfrandomsample=/gnu/store/nczgf2j577bfw3g84f2b6r774bsmj1a6-vcflib-1.0.2/bin/vcfrandomsample
+run_wfmash=/home/guarracino/tools/wfmash/build/bin/wfmash-a7b3215b8d34f23f9865d2ea96dcdb36137cb246
+run_fpa=~/tools/fpa/target/release/fpa-a273badb68c429683369051a1d389ce186f0dd6a
 run_minimap2=/gnu/store/7xpn4bkg6jknk3mzdk0alkrxz5i40j8c-minimap2-2.24/bin/minimap2
 run_meryl=~/tools/Winnowmap/bin-b373a7790aed2f5cb68ee63cb5f414ac9d63ec5a/meryl
 run_winnomap2=~/tools/Winnowmap/bin-b373a7790aed2f5cb68ee63cb5f414ac9d63ec5a/winnowmap
+run_seqwish=~/tools/seqwish/bin/seqwish-88cd0ea5f086cadfaf21c4c363d71536a1a7ea09
+run_vg=/home/guarracino/tools/vg
 run_rtg=/gnu/store/mriq5x6l7kzz51d1z64cvl5qx3d6ylc9-rtg-tools-3.11/rtg
 
 # Variables
@@ -170,7 +169,8 @@ lengths=(
 samples=({A..A})
 num_haplotypes=${#samples[@]}
 
-variant_block=10
+variant_block=10 # Min. distance between simulated variants
+path_input_sdf=/lizardfs/guarracino/pggb_grant/${name_input_fasta}.sdf
 ```
 
 Mutated base generation (SNVs + small INDELs):
@@ -228,7 +228,7 @@ do
       samplename=sample$sample;
       
       # Clean temporary VCF
-      rm samples/$name_output.$samplename.tmp.vcf
+      rm samples/$name_output.$samplename.tmp.vcf -f
       
       cut -f 1 $path_mutated_base_fa.fai | while read seq_name; do
         len_input_fasta=$(grep -P "$seq_name\t" $path_input_fasta.fai | cut -f 2)
@@ -311,7 +311,7 @@ do
       path_input_fa_gz=/lizardfs/guarracino/pggb_grant/assemblies/${name_input_fasta}+samples_$divergence.l${len}.fa.gz;
       dir_paf=/lizardfs/guarracino/pggb_grant/alignments/minimap2;
       path_name=${name_input_fasta}+samples_$divergence.l${len}.drop0.paf
-	  echo $path_paf;
+	  echo $path_input_fa_gz;
 	  
 	  # Align and filter short alignments
 	  sbatch -p workers -c $threads --job-name minimap2 --wrap 'hostname; \time -v '$run_minimap2' '$path_input_fa_gz' '$path_input_fa_gz' -t '$threads' -c -x '$preset' -X 2> '$dir_paf'/'$name_input_fasta'.minimap2.'$divergence'.l'${len}'.log  > '$path_name'; for l in 50000 100000 200000 300000 500000; do cat '$path_name' | '$run_fpa' drop -l $l > '$dir_paf'/'${name_input_fasta}'+samples_'$divergence'.l'${len}'.drop$l.paf; done; mv '$path_name' '$dir_paf;
@@ -339,7 +339,7 @@ do
         path_input_fa_gz=/lizardfs/guarracino/pggb_grant/assemblies/${name_input_fasta}+samples_$divergence.l${len}.fa.gz;
         dir_paf=/lizardfs/guarracino/pggb_grant/alignments/winnomap2;
         path_name=${name_input_fasta}+samples_$divergence.l${len}.drop0.paf
-        echo $path_paf;
+        echo $path_input_fa_gz;
         
         # Align and filter short alignments
         sbatch -p workers -c $threads --job-name winnomap2 --wrap 'hostname; cd /scratch; \time -v '$run_winnomap2' -W '${name_input_fasta}'.repetitive_k19.txt '$path_input_fa_gz' '$path_input_fa_gz' -t '$threads' -c -x '$preset' -X 2> '$dir_paf'/'$name_input_fasta'.winnomap2.'$divergence'.l'${len}'.log  > '$path_name'; for l in 50000 100000 200000 300000 500000; do cat '$path_name' | '$run_fpa' drop -l $l > '$dir_paf'/'${name_input_fasta}'+samples_'$divergence'.l'${len}'.drop$l.paf; done; mv '$path_name' '$dir_paf;
@@ -388,7 +388,7 @@ mkdir -p /lizardfs/guarracino/pggb_grant/graphs/wfmash/
 mkdir -p /lizardfs/guarracino/pggb_grant/graphs/minimap2/
 mkdir -p /lizardfs/guarracino/pggb_grant/graphs/winnomap2/
 
-
+cwd=$(pwd)
 cd /scratch
 
 for index in ${!divergences[*]};
@@ -419,7 +419,7 @@ do
 	    done
 	  done;
 	done;
-    mv graphs/wfmash/* /lizardfs/guarracino/pggb_grant/graphs/wfmash/
+    mv graphs/wfmash/* "$cwd"/graphs/wfmash/
 
 	for aligner in minimap2 winnomap2; do
 	  mkdir -p graphs/$aligner;
@@ -434,11 +434,11 @@ do
 	    done;
 	  done;
     done;
-    mv graphs/minimap2/* /lizardfs/guarracino/pggb_grant/graphs/minimap2/
-    mv graphs/winnomap2/* /lizardfs/guarracino/pggb_grant/graphs/winnomap2/
+    mv graphs/minimap2/* "$cwd"/graphs/minimap2/
+    mv graphs/winnomap2/* "$cwd"/graphs/winnomap2/
 done
 
-cd /lizardfs/guarracino/pggb_grant/
+cd $cwd
 ```
 
 ## Variant calling
@@ -465,7 +465,7 @@ do
             path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.s$s.p$p.gfa;
             path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.s$s.p$p.vcf.gz;
             echo $path_vcf_gz;
-            vg deconstruct -e -a -P 'chr' -H '#' $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
+            $run_vg deconstruct -e -a -P 'chr' -H '#' $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
           done
         done
       done
@@ -479,7 +479,7 @@ do
           path_gfa=graphs/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.gfa;
           path_vcf_gz=variants/$aligner/${name_input_fasta}+samples_$divergence.l${len}.drop$l.vcf.gz;
           echo $path_vcf_gz;
-          vg deconstruct -e -a -P 'chr' -H '#' $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
+          $run_vg deconstruct -e -a -P 'chr' -H '#' $path_gfa -t $threads | bgzip -c > $path_vcf_gz && tabix $path_vcf_gz;
         done;
       done;
     done;
@@ -548,7 +548,7 @@ do
       done; 
     done;
 
-    for aligner in minimap2; do
+    for aligner in minimap2 winnomap2; do
       mkdir -p variants/$aligner; 
       for idx_len in ${!lengths[*]}; do
         for l in 0 50000 100000 200000 300000 500000; do
