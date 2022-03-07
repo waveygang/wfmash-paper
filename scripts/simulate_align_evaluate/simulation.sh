@@ -8,8 +8,7 @@
 assembly='CHM13_v1.1'
 species='Homo sapiens'
 
-#path_input_fasta=/lizardfs/guarracino/pggb_grant/genomes/chm13#chr8.fa
-path_input_fasta=/lizardfs/guarracino/forerik/chrIV.fa
+path_input_fasta=/lizardfs/guarracino/pggb_grant/genomes/chm13#chr8.fa
 
 divergences=(
   0.001
