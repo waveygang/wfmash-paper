@@ -1,0 +1,18 @@
+Pot variant distribution VCF (makes the variant distribution plots with the LV values)
+prefix=chr20
+fp=low-div-refresh-0d57e4/chr20/HG00438/easy/fp.vcf.gz
+fn=low-div-refresh-0d57e4/chr20/HG00438/easy/fn.vcf.gz
+
+zcat $fp | cut -f -8 | vcf2tsv | cut -f 1,2,8,13 | awk 'NR == 1 { print $0, "callset" } NR > 1 { print $0, "FP" }' | tr ' ' '\t' | sed '1d' > $prefix.tsv
+zcat $fn | cut -f -8 | vcf2tsv | cut -f 1,2,8,13 | awk 'NR == 1 { print $0, "callset" } NR > 1 { print $1, $2, $3, ".", "FN" }' | tr ' ' '\t' | sed '1d' >> $prefix.tsv
+
+( echo chrom pos ac lv set; cat $prefix.tsv ) | tr ' ' '\t' | pigz -c > $prefix.tsv.gz
+rm $prefix.tsv
+
+
+library(ggplot2)
+x <- read.delim('chr20.tsv.gz')
+summary(x$set)
+x$set <- as.factor(x$set)
+x$chrom <- as.factor(x$chrom)
+for (s in levels(x$chrom)) { print(s); ggplot(subset(x, chrom==s), aes(x=pos, fill=as.factor(lv))) + geom_histogram(binwidth=100000) + scale_fill_manual("LV", values=c('#888888','#d53e4f','#fc8d59','#fee08b','#99d594','#3288bd','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8','#3713d8')) + ggtitle(paste("Performance",s)) + facet_grid(set ~ .) ; ggsave(paste("chr20.",s,".pdf",sep=""), height=5, width=15); }
