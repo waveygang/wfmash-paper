@@ -12,7 +12,7 @@ MAXSIZE=$3
 REF="/lizardfs/erikg/HPRC/year1v2genbank/evaluation/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna"
 MEM="10G"
 
-bcftools=/gnu/store/pr0v7dvbf16qkm45fiw26hspy77w5bb2-bcftools-1.12/bin/bcftools
+bcftools=/gnu/store/4gjki13dw2cr6chc3ac3jwhkqj0q9vwz-bcftools-1.14/bin/bcftools
 $bcftools view -a -s ${SAMPLE} -Ou ${VCF} \
     | $bcftools norm -f ${REF} -c s -m - -Ou \
     | $bcftools view -e 'GT="ref" | GT~"\."' -f 'PASS,.' -Ou \

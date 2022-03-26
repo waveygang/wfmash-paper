@@ -20,7 +20,7 @@ PATH_SEQWISH=~/tools/seqwish/bin/seqwish-ccfefb016fcfc9937817ce61dc06bbcf382be75
 PATH_VG=~/tools/vg
 
 # Paths
-PAF=${PREFIX}.$FASTA_PREFIX.s${SEGMENT_LEN}.l${BLOCK_LEN}.p$IDENTITY.n${NUM_HAPLOTYPES}.k16.paf
+PAF=${PREFIX}.${FASTA_PREFIX}.s${SEGMENT_LEN}.l${BLOCK_LEN}.p$IDENTITY.n${NUM_HAPLOTYPES}.k16.paf
 GFA=$PAF.k0.B10M.gfa
 VCF=$GFA.vcf.gz
 

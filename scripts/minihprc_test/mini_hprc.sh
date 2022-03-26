@@ -42,7 +42,7 @@ done
 
 
 # Dataset generation
-#( seq 22; echo X; echo Y; echo M ) | while read i; do
+#( echo 1 ) | while read i; do
 #        echo $i
 #        samtools faidx /lizardfs/erikg/HPRC/year1v2genbank/parts/chr${i}.pan.fa $(grep 'chr\|HG00' /lizardfs/erikg/HPRC/year1v2genbank/parts/chr${i}.pan.fa.fai | cut -f 1) | bgzip -@ 48 > chr${i}hg00.fa.gz
 #        samtools faidx chr${i}hg00.fa.gz
