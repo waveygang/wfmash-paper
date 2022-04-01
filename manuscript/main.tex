@@ -106,22 +106,48 @@ wfmash can be installed via Bioconda \url{https://bioconda.github.io/recipes/wfm
 
 \section{Introduction}
 \label{sec:introduction}
-Many biological analyses take advantage of aligning DNA sequences, ranging from read~mapping~\citep{Langmead2012, li2013aligning, MarcoSola2012} to variant detection~\citep{DePristo2011}, as well as de~novo assembly~\citep{Simpson2009} and pangenome construction~\citep{Armstrong2020, Li2020, pggb}.
+Sequence alignment determines edits that transform one sequence into another.
+This is a core task in biological analysis, with applications ranging from short read~mapping~\citep{Langmead2012, li2013aligning, MarcoSola2012}, variant detection~\citep{DePristo2011}, to de~novo assembly~\citep{Simpson2009} and pangenome construction~\citep{Armstrong2020, Li2020, pggb}.
 Pairwise sequence alignment can be applied to identify similar regions that may indicate functional, structural, and/or evolutionary relationships between two biological sequences.
-In this context, pangenomes model the full set of genomic elements in a given species or clade~\citep{Eizenga_2020}.
-These data structures encode the mutual relationships between all the genomes represented, in contrast to reference-based approaches which relate sequences to a particular genome chosen as reference.
-The unbiased approach allows studying the entire genetic diversity of a population.
-This opportunity, in combination with the massive amount of haplotype-resolved whole-genome assemblies available nowadays~\citep{Garg_2020}, presses for the development of tools able to compute pairwise alignments of very long sequences.
+It is key to our study of evolution.
 
-Popular seed-and-extend mapping methods, like Minimap2~\citep{Li_2018}, poorly scale in runtime and memory when generating sensitive alignments for chromosome-scale contigs.
-To scale up to vertebrate genomes, pangenome construction pipelines based on these methods must first filter out centromeres and other highly-repetitive sequences that are typical in eukaryotic chromosomes.
-However, removing sequences is in contrast to the pangenome idea of modeling the full genetic variation in the samples.
-%TODO SOMETHING ELSE REGARDING OTHER ALIGNMENT METHODS???????????????????????????????????????????????
+Due to the intrinsic quadratic difficulty of exact alignment algorithms, and the concomitant need for heuristic algorithms that render them practical, solutions to the problem of sequence alignment are tied closely to the DNA sequence types being considered.
+However, the basic concepts behind sequence alignment have not changed in more than 30 years.
+Methods like FASTA \citep{Pearson_1988}, BLAST \citep{Altschul_1990}, BLAT \citep{Kent_2002}, and LASTZ \citep{harris2007lastz} focused on high sensitivity alignment driven by short match (e.g. $k$-mer) seeds, chaining and filtering of seeds to find candidate alignments, and final base level alignment using algorithms like Smith-Waterman-Gotoh \citep{Gotoh_1982}.
+Short read sequencing led to a deluge of sequencing data that led to a wave of aligners focused on the problem of matching short (100-250bp) reads with few errors to reference genomes of several gigabase-pairs \cite{Langmead2012,MarcoSola2012,li2013aligning}.
+These methods employ various full text indexes to speed up match discovery, including the FM-index \citep{Ferragina_2000}, which supports linear-time exact matching queries that are ideal for application to precise alignment of high-accuracy sequence reads.
 
-In the interest of operating on the full pangenome, and to face the upcoming challenges in pangenome construction, we have developed wfmash, a new gap-affine pairwise tool for aligning DNA sequences at a whole-chromosome scale.
-It supports split-read alignment and gap-affine penalties for insertion and deletions.
-wfmash scales efficiently to large chromosomes while requiring little time and memory, making it suitable to be applied on the pairwise alignment of hundreds of genomes.
-wfmash is based on the integration of MashMap~\citep{Jain_2018}, a fast approximate sequence mapper for computing local alignment boundaries between long DNA sequences, and the wavefront alignment algorithm (WFA)~\citep{Marco_Sola_2020}, an exact gap-affine algorithm that takes advantage of homologous regions between the sequences to accelerate the alignment process.
+However, increasing sequence read lengths, and the arrival of whole genome assemblies for many species rendered such approaches more sensitive than necessary to achieve near-perfect alignment performance when mapping long reads to reference genomes.
+Methods like minimap2 \citep{Li_2018}, LRA \citep{Ren_2021}, Winnowmap \citep{Jain_2020}, and MashMap \citep{Jain_2018} compute mappings, or candidate alignments, using a sparse subset of all $k$-mers, which are often referred to as ``minimizers'' due to their definition as hash-minimizing $k$-mers in a given window \cite{Roberts_2004}.
+Rather than considering all $k$-mers, \textit{windowed minimizer} sampling collects $\sim L/w$ $k-mers$ from a sequence of length $L$, wherein each $k$-mer minimizes a given hash function within a window of size $w$.
+This sampling scheme provides guarantees about the distribution of sampled $k$-mers, which aids read alignment and mapping chaining.
+However, it has been discovered that window minimziers are biased and may underestimate the true similarity of sequences \citep{Belbasi_2022}.
+In contrast, \textit{world minimizers}, which sparsify over the entire potential space of $k$-mers \citep{Broder_1997}, are not biased, and have proved useful as the basis for the whole genome comparison system Mash \citep{Ondov_2016}.
+
+With the arrival of many whole genome assemblies for vertebrates \citep{Rhie_2021}, as well as the first complete assembly of the human genome \cite{Nurk_2022}, the length of sequences that we seek to align has increased again by several orders of magnitude.
+Instead of aligning sequences of 100kb, we now must consider the alignment of whole chromosomes of 100Mbp.
+At the same time, the development of pangenomes based on collections of many such genomes (as in the human pangenome project, HPRC) increases the size of a mapping target from 1Gbp to 1Tbp.
+This $10^3$-fold increase in scale leads to a new set of problems. % that lead towards our specific contribution in the current work. 
+Sequence mappers based on minimizer chaining have mapping costs of $O(n \log n)$ for long sequences \citep{Jain_2022}, where $n$ is the number of seeds.
+The vast number of minimizers and minimizer chains found when mapping whole chromosomes into a pangenome causes a dramatic increase in overall runtime, particularly when mapping repetitive sequences that are now accessible using improved 3rd-generation sequencing technology \citep{Logsdon_2021,Nurk_2022}.
+
+Here we show that, just as with previous leaps in assembly resolution, we can radically improve alignment performance for this new scale by further the degree to which we sparsify, or sample, key information driving mapping and alignment.
+We present wfmash, an ultra-scalable sequence aligner for whole genomes and pangenomes.
+%Our goals are different: we seek to build alignments that represent synteny across whole chromosomes, and we are less concerned about 
+To obtain approximate mappings between pairs of genomes, wfmash extends MashMap \citep{Jain_2018}, which has proven to be the fastest homomoly mapping method, adapting it to use world minimizers, and extending it with a new mapping chaining approach designed to find maximal syntenic blocks even in the presence of large structural variants.
+However, obtaining a base level alignment required a completely new approach to sequence alignment.
+We exploit the $O(s^2)$ scaling properties of the WaveFront Algorithm (WFA) \citep{Marco_Sola_2020} in a new hierarchical arrangement (WF$\lambda$) wherein WFA is applied not to the matching of single characters of input genomes, but rather to the matching of segments of hundreds of base-pairs (e.g. 256bp).
+These segments are matched by sketching their kmers, and where similarity is above a given threshold, an ``incepted'' WFA alignment is completed at the base level.
+By taking half-overlapping segments, the method has a high probability of finding the optimal base-level alignment within the incepted WFA problems, and we ultimately combine these during traceback through the WF$\lambda$ matrix.
+A final round of erosion and patching of the resulting alignment (with WFA) yields a base-level alignment.
+For a segment length $L$, wavefront inception provides $O(4L^2)$ reduction in alignment complexity relative to direct application of WFA.
+When $L=256$, this corresponds to a 16384-fold reduction in computational complexity, a property born out by our experimental results.
+
+%A collection of minimizers of a given length is often referred to as a sketch, and is a form of locality sensitive hash that may be quickly compared to obtain sequence similarity estimates without consideration of the full sequence, as in mash \cite{Ondov_2016}.
+%Minimizers have been applied to numerous problems in sequence analysis, but the 
+%
+
+
 
 
 \section{Methods}
