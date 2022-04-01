@@ -134,14 +134,16 @@ The vast number of minimizers and minimizer chains found when mapping whole chro
 Here we show that, just as with previous leaps in assembly resolution, we can radically improve alignment performance for this new scale by further the degree to which we sparsify, or sample, key information driving mapping and alignment.
 We present wfmash, an ultra-scalable sequence aligner for whole genomes and pangenomes.
 %Our goals are different: we seek to build alignments that represent synteny across whole chromosomes, and we are less concerned about 
-To obtain approximate mappings between pairs of genomes, wfmash extends MashMap \citep{Jain_2018}, which has proven to be the fastest homomoly mapping method, adapting it to use world minimizers, and extending it with a new mapping chaining approach designed to find maximal syntenic blocks even in the presence of large structural variants.
+To obtain approximate mappings between pairs of genomes, wfmash extends MashMap \citep{Jain_2018}, which has proven to be the fastest homomoly mapping method, adapting it to use world minimizers, extending it with a new mapping chaining approach designed to find maximal syntenic blocks even in the presence of large structural variants.
+
 However, obtaining a base level alignment required a completely new approach to sequence alignment.
-We exploit the $O(s^2)$ scaling properties of the WaveFront Algorithm (WFA) \citep{Marco_Sola_2020} in a new hierarchical arrangement (WF$\lambda$) wherein WFA is applied not to the matching of single characters of input genomes, but rather to the matching of segments of hundreds of base-pairs (e.g. 256bp).
+We exploit the $O(s^2)$ scaling properties of the WaveFront Algorithm (WFA) \citep{Marco_Sola_2020} in a new hierarchical arrangement (the ``we flying'' alignment algorithm, WFlign) wherein WFA is applied not to the matching of single characters of input genomes, but rather to the matching of segments of hundreds of base-pairs (e.g. 256bp) (WF$\lambda$).
 These segments are matched by sketching their kmers, and where similarity is above a given threshold, an ``incepted'' WFA alignment is completed at the base level.
 By taking half-overlapping segments, the method has a high probability of finding the optimal base-level alignment within the incepted WFA problems, and we ultimately combine these during traceback through the WF$\lambda$ matrix.
 A final round of erosion and patching of the resulting alignment (with WFA) yields a base-level alignment.
 For a segment length $L$, wavefront inception provides $O(4L^2)$ reduction in alignment complexity relative to direct application of WFA.
-When $L=256$, this corresponds to a 16384-fold reduction in computational complexity, a property born out by our experimental results.
+When $L=256$, this corresponds to a 16,384-fold reduction in computational complexity, a property born out by our experimental results.
+Although WFlign is an approximate alignment algorithm not guaranteed to find the optimal alignment through the full matrix, here we show that our implementation nevertheless achieves state-of-the-art accuracy for variant detection via alignment.
 
 %A collection of minimizers of a given length is often referred to as a sketch, and is a form of locality sensitive hash that may be quickly compared to obtain sequence similarity estimates without consideration of the full sequence, as in mash \cite{Ondov_2016}.
 %Minimizers have been applied to numerous problems in sequence analysis, but the 
