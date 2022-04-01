@@ -78,14 +78,22 @@ $^\ast$To whom correspondence should be addressed.
 
 \abstract{
 \textbf{Motivation:}
-Pairwise alignment is a critical step in studying whole-genome assemblies and their relationships in an unbiased way.
-The time and memory required to compute the pairwise alignments increase quadratically with sequence length and nucleotide divergence.
-This makes it impractical to align very long sequences without applying heuristic approaches to first determine possible synthenic regions in the sequences.
-Nevertheless, with the advances in sequencing technologies, new whole-genome assemblies are produced at a high rate, pressing for the development of tools able to align sequences of the order of tens of megabases long. \\
+Pairwise alignment is essential to understanding DNA sequence variation.
+The time and memory required to compute pairwise alignments increases quadratically with sequence length and nucleotide divergence.
+Advances in sequencing technology have resulted in the rapid production of new whole-genome sequences.
+This leads to a new problem of efficiently comparing many whole genomes, a costly task for methods designed to align shorter (100bp--100kbp) sequence reads to reference genomes. \\
+%This makes it impractical to align very long sequences without applying heuristic approaches to first determine possible synthenic regions in the sequences.
+%Nevertheless, with the advances in sequencing technologies, new whole-genome assemblies are produced at a high rate, pressing for the development of tools able to align sequences of the order of tens of megabases long. \\
 \textbf{Results:}
-Here we present wfmash, a new gap-affine pairwise aligner designed to align DNA sequences at a whole-chromosome scale.
-wfmash applies a hierarchical implementation of the wavefront alignment algorithm to guide the alignment of very long sequences.
-It scales efficiently to large eukaryotic chromosomes, allowing users to perform pairwise alignment of thousands of large genomes using little time and memory. \\
+Here we present \textit{wfmash}, a sequence aligner specialized for large collections of very long and highly divergent genome sequences.
+It first finds large syntenic homologies between genomes using locality sensitive hashing, approximate match chaining, and logarithmic-time filtering of these mappings.
+%Two parameters define these mappings: a seed segment length and minimum average nucleotide identity between matched segments, allowing for intuitive experimental setup.
+The resulting mappings can cover entire chromosomes and contain megabase-scale SVs, which presents a significant challenge for direct alignment.
+We address this with an extension of the wavefront algorithm (WFA) that matches segments of sequence rather than single characters.
+Our approach achieves a many thousand-fold reduction in time and space complexity relative to direct alignment with WFA.
+We demonstrate that this comes at little to no cost in terms of variant detection accuracy relative to established sequence aligners. \\
+%\textit{wfmash} allows us to scale to all-to-all alignment of hundreds of vertebrate \\
+%A key feature of \textit{wfmash} is that users can intuitively shape the scope of an alignment experiment using two parameters: a mapping segment length and a minimum average nucleotide identity between segments. \\
 \textbf{Availability:}
 wfmash is published as free software under the MIT open source license.
 Source code and documentation are available at \url{https://github.com/ekg/wfmash}.
