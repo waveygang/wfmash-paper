@@ -118,10 +118,10 @@ Short read sequencing led to a deluge of sequencing data that led to a wave of a
 These methods employ various full text indexes to speed up match discovery, including the FM-index \citep{Ferragina_2000}, which supports linear-time exact matching queries that are ideal for application to precise alignment of high-accuracy sequence reads.
 
 However, increasing sequence read lengths, and the arrival of whole genome assemblies for many species rendered such approaches more sensitive than necessary to achieve near-perfect alignment performance when mapping long reads to reference genomes.
-Methods like minimap2 \citep{Li_2018}, LRA \citep{Ren_2021}, Winnowmap \citep{Jain_2020}, and MashMap \citep{Jain_2018} compute mappings, or candidate alignments, using a sparse subset of all $k$-mers, which are often referred to as ``minimizers'' due to their definition as hash-minimizing $k$-mers in a given window \cite{Roberts_2004}.
+Methods like minimap2 \citep{Li_2018}, LRA \citep{Ren_2021}, Winnowmap \citep{Jain_2020}, and MashMap \citep{Jain_2018} compute mappings, or candidate alignments, using a sparse subset of all $k$-mers, which are often referred to as ``minimizers'' due to their definition as hash-minimizing $k$-mers in a given window \citep{Roberts_2004}.
 Rather than considering all $k$-mers, \textit{windowed minimizer} sampling collects $\sim L/w$ $k-mers$ from a sequence of length $L$, wherein each $k$-mer minimizes a given hash function within a window of size $w$.
 This sampling scheme provides guarantees about the distribution of sampled $k$-mers, which aids read alignment and mapping chaining.
-However, it has been discovered that window minimziers are biased and may underestimate the true similarity of sequences \citep{Belbasi_2022}.
+However, it has been discovered that window minimizers are biased and may underestimate the true similarity of sequences \citep{Belbasi_2022}.
 In contrast, \textit{world minimizers}, which sparsify over the entire potential space of $k$-mers \citep{Broder_1997}, are not biased, and have proved useful as the basis for the whole genome comparison system Mash \citep{Ondov_2016}.
 
 With the arrival of many whole genome assemblies for vertebrates \citep{Rhie_2021}, as well as the first complete assembly of the human genome \cite{Nurk_2022}, the length of sequences that we seek to align has increased again by several orders of magnitude.
