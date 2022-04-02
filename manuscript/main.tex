@@ -62,7 +62,7 @@ Erik~Garrison\,$^{\orcidlink{0000-0003-3821-631X}\text{\sfb 5}*}$
 $^{\text{\sf 1}}$Genomics Research Centre, Human Technopole, Viale Rita Levi‑Montalcini 1, Milan, 20157, Italy \\
 $^{\text{\sf 2}}$Department of Computer Sciences, University of Pisa, Pisa, 56127, Italy \\
 $^{\text{\sf 3}}$Department of Computer Sciences, Barcelona Supercomputing Center, Barcelona, 08034, Spain \\
-$^{\text{\sf 4}}$Departament d’Arquitectura de Computadors i Sistemes Operatius, Universitat Autònoma de Barcelona, Barcelona, 08193, Spain \\
+$^{\text{\sf 4}}$Department d’Arquitectura de Computadors i Sistemes Operatius, Universitat Autònoma de Barcelona, Barcelona, 08193, Spain \\
 $^{\text{\sf 5}}$Department of Genetics, Genomics and Informatics, University of Tennessee Health Science Center, Memphis, 38163, Tennessee, USA
 }
 
@@ -118,6 +118,8 @@ Short read sequencing led to a deluge of sequencing data that led to a wave of a
 These methods employ various full text indexes to speed up match discovery, including the FM-index \citep{Ferragina_2000}, which supports linear-time exact matching queries that are ideal for application to precise alignment of high-accuracy sequence reads.
 
 Increasing sequence read lengths and the arrival of whole genome assemblies for many species rendered such approaches more sensitive than necessary.
+Sparsification, or random sampling to reduce computational costs, allows tremendous improvement in performance.
+We can still achieve near-perfect alignment performance when mapping long reads to reference genomes even when ignoring many parts of the query and target sequences.
 %The new problem of mapping long reads to reference genomes led to 
 Methods like minimap2 \citep{Li_2018}, LRA \citep{Ren_2021}, Winnowmap \citep{Jain_2020}, and MashMap \citep{Jain_2018} compute mappings, or candidate alignments, using a sparse subset of all $k$-mers, which are often referred to as ``minimizers'' due to their definition as hash-minimizing $k$-mers in a given window \cite{Roberts_2004}.
 Rather than considering all $k$-mers, \textit{windowed minimizer} sampling collects $\sim L/w$ $k-mers$ from a sequence of length $L$, wherein each $k$-mer minimizes a given hash function within a window of size $w$.
