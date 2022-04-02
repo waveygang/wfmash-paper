@@ -50,7 +50,7 @@
 
 \subtitle{Genome Analysis}
 
-\title[Whole-genome pairwise alignment]{Whole-genome pairwise alignment using the hierarchical wavefront algorithm}
+\title[Wavefront inception]{Whole genome alignment with wavefront inception}
 \author[Guarracino \textit{et~al}.]{
 Andrea~Guarracino\,$^{\orcidlink{0000-0001-9744-131X}\text{\sfb 1}}$,
 Njagi~Mwaniki\,$^{\text{\sfb 2}}$,
@@ -117,11 +117,12 @@ Methods like FASTA \citep{Pearson_1988}, BLAST \citep{Altschul_1990}, BLAT \cite
 Short read sequencing led to a deluge of sequencing data that led to a wave of aligners focused on the problem of matching short (100-250bp) reads with few errors to reference genomes of several gigabase-pairs \cite{Langmead2012,MarcoSola2012,li2013aligning}.
 These methods employ various full text indexes to speed up match discovery, including the FM-index \citep{Ferragina_2000}, which supports linear-time exact matching queries that are ideal for application to precise alignment of high-accuracy sequence reads.
 
-However, increasing sequence read lengths, and the arrival of whole genome assemblies for many species rendered such approaches more sensitive than necessary to achieve near-perfect alignment performance when mapping long reads to reference genomes.
+Increasing sequence read lengths and the arrival of whole genome assemblies for many species rendered such approaches more sensitive than necessary.
+%The new problem of mapping long reads to reference genomes led to 
 Methods like minimap2 \citep{Li_2018}, LRA \citep{Ren_2021}, Winnowmap \citep{Jain_2020}, and MashMap \citep{Jain_2018} compute mappings, or candidate alignments, using a sparse subset of all $k$-mers, which are often referred to as ``minimizers'' due to their definition as hash-minimizing $k$-mers in a given window \cite{Roberts_2004}.
 Rather than considering all $k$-mers, \textit{windowed minimizer} sampling collects $\sim L/w$ $k-mers$ from a sequence of length $L$, wherein each $k$-mer minimizes a given hash function within a window of size $w$.
 This sampling scheme provides guarantees about the distribution of sampled $k$-mers, which aids read alignment and mapping chaining.
-However, it has been discovered that window minimziers are biased and may underestimate the true similarity of sequences \citep{Belbasi_2022}.
+It has been discovered that window minimziers are biased and may underestimate the true similarity of sequences \citep{Belbasi_2022}.
 In contrast, \textit{world minimizers}, which sparsify over the entire potential space of $k$-mers \citep{Broder_1997}, are not biased, and have proved useful as the basis for the whole genome comparison system Mash \citep{Ondov_2016}.
 
 With the arrival of many whole genome assemblies for vertebrates \citep{Rhie_2021}, as well as the first complete assembly of the human genome \cite{Nurk_2022}, the length of sequences that we seek to align has increased again by several orders of magnitude.
@@ -130,6 +131,13 @@ At the same time, the development of pangenomes based on collections of many suc
 This $10^3$-fold increase in scale leads to a new set of problems. % that lead towards our specific contribution in the current work. 
 Sequence mappers based on minimizer chaining have mapping costs of $O(n \log n)$ for long sequences \citep{Jain_2022}, where $n$ is the number of seeds.
 The vast number of minimizers and minimizer chains found when mapping whole chromosomes into a pangenome causes a dramatic increase in overall runtime, particularly when mapping repetitive sequences that are now accessible using improved 3rd-generation sequencing technology \citep{Logsdon_2021,Nurk_2022}.
+
+%Minimizer seeds have also proven useful for the generation of alignments.
+%To obtain base level alignments using adaptive-banded Smith-Waterman-Gotoh requires seeds that initiate the correct alignment, rendering the use of minimizers necessary.
+%But, this limits the level of further sparsification available to mapping methods.
+%These costs are further exacerbated when obtaining the base level alignments.
+
+\subsection{Current work}
 
 Here we show that, just as with previous leaps in assembly resolution, we can radically improve alignment performance for this new scale by further the degree to which we sparsify, or sample, key information driving mapping and alignment.
 We present wfmash, an ultra-scalable sequence aligner for whole genomes and pangenomes.
@@ -141,6 +149,7 @@ We exploit the $O(s^2)$ scaling properties of the WaveFront Algorithm (WFA) \cit
 These segments are matched by sketching their kmers, and where similarity is above a given threshold, an ``incepted'' WFA alignment is completed at the base level.
 By taking half-overlapping segments, the method has a high probability of finding the optimal base-level alignment within the incepted WFA problems, and we ultimately combine these during traceback through the WF$\lambda$ matrix.
 A final round of erosion and patching of the resulting alignment (with WFA) yields a base-level alignment.
+
 For a segment length $L$, wavefront inception provides $O(4L^2)$ reduction in alignment complexity relative to direct application of WFA.
 When $L=256$, this corresponds to a 16,384-fold reduction in computational complexity, a property born out by our experimental results.
 Although WFlign is an approximate alignment algorithm not guaranteed to find the optimal alignment through the full matrix, here we show that our implementation nevertheless achieves state-of-the-art accuracy for variant detection via alignment.
@@ -149,7 +158,7 @@ Although WFlign is an approximate alignment algorithm not guaranteed to find the
 %Minimizers have been applied to numerous problems in sequence analysis, but the 
 %
 
-
+\input{fig_wflamba}
 
 
 \section{Methods}
@@ -183,8 +192,6 @@ To avoid such limitation, wfmash applies a hierarchical WFA, exploiting the WFA 
 Rather than directly aligning the whole sequences, it aligns them to each other in small pieces \textit{W}-bp long by applying a global WFA alignment (Figure~1\vphantom{\ref{fig:1}}).
 The whole global alignment is then computed over the full dynamic-programming matrix (high order DP-matrix) at \textit{W}-bp resolution.
 Each cell in the high order DP-matrix corresponds to the alignment of a specific pair of fragments \textit{W}-bp long from the two sequences to align.
-
-\input{fig_wflamba}
 
 \subsection{Sparsification}
 To determine if each cell is a match, and then guiding the alignment at \textit{W}-bp resolution, the global alignment is performed between the two fragments with the standard WFA.
