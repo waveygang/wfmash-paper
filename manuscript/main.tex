@@ -78,8 +78,8 @@ $^\ast$To whom correspondence should be addressed.
 
 \abstract{
 \textbf{Motivation:}
-Pairwise alignment is essential to understanding DNA sequence variation.
-The time and memory required to compute pairwise alignments increases quadratically with sequence length and nucleotide divergence.
+Homology mapping and base-level alignment are essential to understanding DNA sequence variation.
+The time and memory required to compute pairwise alignments increases quadratically with sequence length and nucleotide divergence, necessitating specialized heuristic approaches.
 Advances in sequencing technology have resulted in the rapid production of new whole-genome sequences.
 This leads to a new problem of efficiently comparing many whole genomes, a costly task for methods designed to align shorter (100bp--100kbp) sequence reads to reference genomes. \\
 %This makes it impractical to align very long sequences without applying heuristic approaches to first determine possible synthenic regions in the sequences.
@@ -91,7 +91,7 @@ It first finds large syntenic homologies between genomes using locality sensitiv
 The resulting mappings can cover entire chromosomes and contain megabase-scale SVs, which presents a significant challenge for direct alignment.
 We address this with an extension of the wavefront algorithm (WFA) that matches segments of sequence rather than single characters.
 Our approach achieves a many thousand-fold reduction in time and space complexity relative to direct alignment with WFA.
-We demonstrate that this comes at little to no cost in terms of variant detection accuracy relative to established sequence aligners. \\
+We demonstrate that this comes at little to no cost in terms of variant detection accuracy relative to established sequence aligners, and that our approach supports efficient pangenome-scale alignment. \\
 %\textit{wfmash} allows us to scale to all-to-all alignment of hundreds of vertebrate \\
 %A key feature of \textit{wfmash} is that users can intuitively shape the scope of an alignment experiment using two parameters: a mapping segment length and a minimum average nucleotide identity between segments. \\
 \textbf{Availability:}
@@ -122,7 +122,7 @@ Sparsification, or random sampling to reduce computational costs, allows tremend
 We can still achieve near-perfect alignment performance when mapping long reads to reference genomes even when ignoring many parts of the query and target sequences.
 %The new problem of mapping long reads to reference genomes led to 
 Methods like minimap2 \citep{Li_2018}, LRA \citep{Ren_2021}, Winnowmap \citep{Jain_2020}, and MashMap \citep{Jain_2018} compute mappings, or candidate alignments, using a sparse subset of all $k$-mers, which are often referred to as ``minimizers'' due to their definition as hash-minimizing $k$-mers in a given window \cite{Roberts_2004}.
-Rather than considering all $k$-mers, \textit{windowed minimizer} sampling collects $\sim L/w$ $k-mers$ from a sequence of length $L$, wherein each $k$-mer minimizes a given hash function within a window of size $w$.
+Rather than considering all $k$-mers, \textit{windowed minimizer} sampling collects $\sim N/w$ $k$-mers from a sequence of length $N$, wherein each $k$-mer minimizes a given hash function within a window of size $w$.
 This sampling scheme provides guarantees about the distribution of sampled $k$-mers, which aids read alignment and mapping chaining.
 It has been discovered that window minimziers are biased and may underestimate the true similarity of sequences \citep{Belbasi_2022}.
 In contrast, \textit{world minimizers}, which sparsify over the entire potential space of $k$-mers \citep{Broder_1997}, are not biased, and have proved useful as the basis for the whole genome comparison system Mash \citep{Ondov_2016}.
@@ -155,6 +155,8 @@ A final round of erosion and patching of the resulting alignment (with WFA) yiel
 For a segment length $L$, wavefront inception provides $O(4L^2)$ reduction in alignment complexity relative to direct application of WFA.
 When $L=256$, this corresponds to a 16,384-fold reduction in computational complexity, a property born out by our experimental results.
 Although WFlign is an approximate alignment algorithm not guaranteed to find the optimal alignment through the full matrix, here we show that our implementation nevertheless achieves state-of-the-art accuracy for variant detection via alignment.
+We exploit this dramatic reduction in computational complexity to develop a method capable of the direct pairwise alignment of chromosome-scale homologies.
+This arrangement yields 1:1 alignments that are critical for the development of pangenome graph models, multiple whole genome alignments, and projection---or lift-over---of annotations between assemblies.
 
 %A collection of minimizers of a given length is often referred to as a sketch, and is a form of locality sensitive hash that may be quickly compared to obtain sequence similarity estimates without consideration of the full sequence, as in mash \cite{Ondov_2016}.
 %Minimizers have been applied to numerous problems in sequence analysis, but the 
