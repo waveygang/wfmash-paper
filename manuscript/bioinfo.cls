@@ -481,17 +481,10 @@
     \checkoddpage\ifcpoddpage\setlength{\aboveskipchk}{-16pt}\else\setlength{\aboveskipchk}{-16pt}\fi%for checking oddpage or evenpage top skip%%
   \vspace*{\aboveskipchk}%
   \vspace{\dropfromtop}%
-  \hbox to \textwidth{\raisebox{5pt}[0pt]{%
-  \parbox[b]{415pt}{\raggedleft{\helveticacnitalic\fontsize{8}{12}\selectfont {Bioinformatics}}\\[1pt]
-  {\helveticacn doi.10.1093/bioinformatics/xxxxxx}\\[1pt]
-  {\ifx\@access\@empty
-  \else
-  {\helveticacn \@access}\fi}
-  \vskip1pt
-  {\ifx\@appnotes\@empty
-  \else
-  {\helveticacn \@appnotes}\fi}
-    }}%
+  \hbox to \textwidth{\raisebox{5pt}[0pt]{}
+  %\parbox[b]{415pt}{\raggedleft{\helveticacnitalic\fontsize{8}{12}\selectfont {Bioinformatics}}\\[1pt]
+  %  {\helveticacn doi.10.1093/bioinformatics/xxxxxx}\\[1pt]
+  %}%
 %\enskip  \parbox[b]{11.3pc}{%
 %    \helvetica
 %    \flushright\fontsize{8}{10}\fontshape{it}\selectfont
