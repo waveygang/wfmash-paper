@@ -1,3 +1,12 @@
+save_pheatmap_png <- function(x, filename, width, height) {
+  stopifnot(!missing(x))
+  stopifnot(!missing(filename))
+  png(filename, width=width, height=height)
+  grid::grid.newpage()
+  grid::grid.draw(x$gtable)
+  dev.off()
+}
+
 # Read in a mash output lower triangle file as a matrix object
 read_mash_tri <- function(file) {
   x <- scan(file, what = 'character', skip = 1)   # read in as vector
@@ -30,7 +39,7 @@ temp <- as.data.frame(as.matrix(D))
 table.paint(temp, cleg = 0, clabel.row = .9, clabel.col = .9) #darker shades of gray mean a larger distance # you can also make cool color plots but they're much more complicated because they use the image() function
 
 
-pheatmap::pheatmap(
+ph <- pheatmap::pheatmap(
   #cor(as.matrix(D), method = "spearman"),
   as.matrix(D),
   fontsize = 12, fontsize_row = 12, height = 20,
@@ -44,6 +53,12 @@ pheatmap::pheatmap(
 # 45_fish_alignment.mash_triangle.heatmap.11x11.5.pdf
 # 45_fish_alignment.mash_triangle.heatmap.1550x1500.png
 
+save_pheatmap_png(ph, path_heatmap, 25000, 25000)  
+
+
+# # Big stuff
+# library(gplots)
+# heatmap.2(as.matrix(D),col=greenred(10), trace="none",cexRow=0.3, cexCol=0.3, labCol="", labRow="",distfun=function(x) dist(x,method="manhattan"))
 
 # Other trials
 library(ape) #install.packages("ape") #https://fuzzyatelin.github.io/bioanth-stats/module-24/module-24.html

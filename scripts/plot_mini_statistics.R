@@ -11,7 +11,8 @@ x$chromosome <- factor(x$chromosome, levels = unique(x[order(as.integer(gsub("[^
 a <- x[(x$chromosome != 'chrX' & x$chromosome != 'chrY'),]
 ggplot(a, aes(x = chromosome, y = F1.score, fill=branch, label = sample)) +
   geom_boxplot(outlier.shape = NA) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  #geom_jitter(size=0.4, alpha=0.9, aes(color=branch)) +
+  #ylim(0.98, 0.996) +
   #geom_text_repel(
   #  size=2,
   #  max.iter=100,
