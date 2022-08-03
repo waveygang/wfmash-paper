@@ -9,8 +9,7 @@ REF=$3
 CHROMS=$4
 MAXSIZE=$5
 
-FNAME=$(basename $VCF)
-PREFIX=$(dirname $VCF)/"${FNAME%.vcf.gz}"
+PREFIX=$(basename $VCF .vcf.gz)
 
 MEM="10G"
 
