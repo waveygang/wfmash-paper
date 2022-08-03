@@ -12,6 +12,9 @@ DIR_TRUTH_VCF=$9
 PATH_VCF_PREPROCESS_SH=${10}
 PATH_VCF_EVALUATION_SH=${11}
 
+REF=/lizardfs/erikg/HPRC/year1v2genbank/evaluation/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna
+REF_SDF=/lizardfs/erikg/HPRC/year1v2genbank/evaluation/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.sdf
+
 mkdir -p /scratch/$PREFIX-chr$i
 cd /scratch/$PREFIX-chr$i
 
@@ -23,7 +26,10 @@ VCF=$PREFIX.${FASTA_PREFIX}.s10k.l50k.p98.n14.k16.paf.k0.B10M.gfa.vcf.gz
 for SAMPLE in HG00438 HG00621 HG00673 HG00733 HG00735 HG00741; do
   TRUTH_VCF=${DIR_TRUTH_VCF}/$SAMPLE.GRCh38_no_alt.deepvariant.vcf.gz
 
-  bash ${PATH_VCF_EVALUATION_SH} $SAMPLE $TRUTH_VCF $VCF ${PATH_EASY_REGIONS} ${PATH_HARD_REGIONS} $SAMPLE ${PATH_VCF_PREPROCESS_SH}
+  echo "VCF renaming"
+  zcat $VCF | sed 's/^grch38#//g' | bgzip -c -@ 12 > "$VCF".renamed.vcf.gz && tabix "$VCF".renamed.vcf.gz
+
+  bash ${PATH_VCF_EVALUATION_SH} $SAMPLE $TRUTH_VCF "$VCF".renamed.vcf.gz ${PATH_EASY_REGIONS} ${PATH_HARD_REGIONS} $SAMPLE ${PATH_VCF_PREPROCESS_SH} $REF_SDF
 done
 
 mv /scratch/$PREFIX-chr$i/* ${OUTPUT_DIR}
