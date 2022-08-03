@@ -20,7 +20,7 @@ bcftools view -a -s ${SAMPLE} -Ou ${VCF} \
     | bcftools norm -d exact -Oz -o ${PREFIX}.norm.vcf.gz \
     && bcftools index -t ${PREFIX}.norm.vcf.gz \
     && bcftools view -e "STRLEN(REF)>${MAXSIZE} | STRLEN(ALT)>${MAXSIZE}" \
-                 -r ${CHROMS} -Oz -o ${PREFIX}.norm.max${MAXSIZE}.gz \
+                 -r ${CHROMS} -Oz -o ${PREFIX}.norm.max${MAXSIZE}.vcf.gz \
                  ${PREFIX}.norm.vcf.gz \
-    && bcftools index -t ${PREFIX}.norm.max${MAXSIZE}.gz \
+    && bcftools index -t ${PREFIX}.norm.max${MAXSIZE}.vcf.gz \
     && rm ${PREFIX}.norm.vcf.gz*
