@@ -15,7 +15,7 @@ PREFIX=$(dirname $VCF)/"${FNAME%.vcf.gz}"
 MEM="10G"
 
 bcftools view -a -s ${SAMPLE} -Ou ${VCF} \
-    | bcftools norm q-f ${REF} -c s -m - -Ou \
+    | bcftools norm -f ${REF} -c s -m - -Ou \
     | bcftools view -e 'GT="ref" | GT~"\."' -f 'PASS,.' -Ou \
     | bcftools sort -m ${MEM} -T bcftools-sort.XXXXXX -Ou \
     | bcftools norm -d exact -Oz -o ${PREFIX}.norm.vcf.gz \
