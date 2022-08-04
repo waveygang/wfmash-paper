@@ -38,7 +38,7 @@ PATH_VCF_GZ=$CHR.s$s.l$l.p$p.n$n.k0.vcf.gz
 
 # Fix CHROM (to match the CHROM in the truth variant set)
 mv $PATH_VCF_GZ xxx.vcf.gz
-zcat xxx.vcf.gz | sed 's/SL5#1#ch//g' | bgzip -c -@ 48 > $PATH_VCF_GZ
+zcat xxx.vcf.gz | sed 's/SL5#1#ch//g' | sed 's/>0/>/g' | bgzip -c -@ 48 > $PATH_VCF_GZ
 rm xxx.vcf.gz
 
 #echo "Realign REF/ALT alleles"
