@@ -69,7 +69,7 @@ for SAMPLE in PP TS204 TS281 TS413 TS629 TS96; do
     -b $TRUTH_VCF_GZ \
     -c $QUERY_VCF_GZ \
     -T 48 \
-    -o vcfeval/$SAMPLE
+    -o vcfeval/$SAMPLE/vg
 
   bash /lizardfs/guarracino/wfmash-paper/scripts/vcf_preprocess.sh \
     $PATH_VCF_WAVED_GZ \
@@ -83,7 +83,7 @@ for SAMPLE in PP TS204 TS281 TS413 TS629 TS96; do
     -b $TRUTH_VCF_GZ \
     -c $QUERY_WAVED_VCF_GZ \
     -T 48 \
-    -o vcfeval/$SAMPLE.waved
+    -o vcfeval/$SAMPLE/vcfwave
 done
 
 DIR_OUTPUT_PREFIX=$DIR_OUTPUT/$PREFIX
