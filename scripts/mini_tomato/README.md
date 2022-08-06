@@ -32,7 +32,7 @@ ls | while read PREFIX; do
   done
 done
 
-(echo brach chromosome sample vcf tp.baseline tp.call fp fn precision recall f1.score | tr ' ' '\t';
-  grep None */*/vcfeval/PP/*/summary.txt | cut -f 1,2,4,5,6 -d '/' | sed 's/summary.txt://g' |tr -s ' ' | sed 's,/ *, ,g' | cut -f 5 --complement -d ' ') \
+(echo branch chromosome sample vcf tp.baseline tp.call fp fn precision recall f1.score | tr ' ' '\t';
+  grep None */*/vcfeval/*/*/summary.txt | cut -f 1,2,4,5,6 -d '/' | sed 's/summary.txt://g' |tr -s ' ' | sed 's,/ *, ,g' | cut -f 5 --complement -d ' ' | tr ' ' '\t') \
   > mini_tomato.stats.tsv
 ```
