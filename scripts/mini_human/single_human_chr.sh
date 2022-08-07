@@ -14,8 +14,8 @@ DIR_OUTPUT=$8
 vcfwave=/gnu/store/hkbkw85gjvsyqvx9vv9bw0ynmad989ag-vcflib-1.0.3+a36dbe9-11/bin/vcfwave # Jul 10, 2022
 PATH_REF_FASTA=/lizardfs/erikg/HPRC/year1v2genbank/evaluation/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna
 PATH_REF_SDF=/lizardfs/erikg/HPRC/year1v2genbank/evaluation/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.sdf
-DIR_TRUTH_VCF=/lizardfs/guarracino/wfmash-paper/hprc/truth/
-DIR_GENOMES=/lizardfs/guarracino/wfmash-paper/hprc/genomes
+DIR_TRUTH_VCF=/lizardfs/guarracino/wfmash-paper/human/truth/
+DIR_GENOMES=/lizardfs/guarracino/wfmash-paper/human/genomes
 
 
 CHR=chr$i
