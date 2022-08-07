@@ -3,14 +3,21 @@
 Run:
 
 ```shell
-PATH_WFMASH=/home/guarracino/tools/wfmash/build/bin/wfmash-fixed-pen
-PREFIX=fixed
+PATH_WFMASH=/home/guarracino/tools/wfmash/build/bin/wfmash-fixed-low-pen
+PREFIX=fixed-0-4-6-1
+
+PATH_WFMASH=/home/guarracino/tools/wfmash/build/bin/wfmash-fixed-med-pen
+PREFIX=fixed-0-7-11-1
+
+PATH_WFMASH=/home/guarracino/tools/wfmash/build/bin/wfmash-fixed-high-pen
+PREFIX=fixed-0-11-17-1
+
 PATH_WFMASH=/home/guarracino/tools/wfmash/build/bin/wfmash-poly-pen
 PREFIX=poly
 
 s=10k
 l=50k
-p=95
+p=80
 n=7
 DIR_OUTPUT=/lizardfs/guarracino/wfmash-paper/tomato/tests/
 
