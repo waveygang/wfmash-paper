@@ -53,7 +53,7 @@ for SAMPLE in HG00438 HG00621 HG00673 HG00733 HG00735 HG00741; do
     $PATH_TRUTH_VCF_GZ \
     $SAMPLE \
     $PATH_REF_FASTA \
-    $i \
+    chr$i \
     50
   TRUTH_VCF_GZ=$SAMPLE.GRCh38_no_alt.deepvariant.norm.max50.vcf.gz
 
@@ -61,7 +61,7 @@ for SAMPLE in HG00438 HG00621 HG00673 HG00733 HG00735 HG00741; do
     $PATH_VCF_GZ \
     $SAMPLE \
     $PATH_REF_FASTA \
-    $i \
+    chr$i \
     50
   QUERY_VCF_GZ=$CHR.s$s.l$l.p$p.n$n.k0.norm.max50.vcf.gz
   rtg vcfeval \
@@ -75,7 +75,7 @@ for SAMPLE in HG00438 HG00621 HG00673 HG00733 HG00735 HG00741; do
 #    $PATH_VCF_WAVED_GZ \
 #    $SAMPLE \
 #    $PATH_REF_FASTA \
-#    $i \
+#    chr$i \
 #    50
 #  QUERY_WAVED_VCF_GZ=$CHR.s$s.l$l.p$p.n$n.k0.waved.norm.max50.vcf.gz
 #  rtg vcfeval \
