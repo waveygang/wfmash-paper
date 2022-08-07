@@ -55,7 +55,7 @@ for SAMPLE in HG00438 HG00621 HG00673 HG00733 HG00735 HG00741; do
     $PATH_REF_FASTA \
     $i \
     50
-  TRUTH_VCF_GZ=$SAMPLE.hifi.norm.max50.vcf.gz
+  TRUTH_VCF_GZ=$SAMPLE.GRCh38_no_alt.deepvariant.norm.max50.vcf.gz
 
   bash /lizardfs/guarracino/wfmash-paper/scripts/vcf_preprocess.sh \
     $PATH_VCF_GZ \
