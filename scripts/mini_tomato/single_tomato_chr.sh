@@ -32,18 +32,18 @@ bash /lizardfs/guarracino/wfmash-paper/scripts/fasta+paf2gfa+vcf.sh \
   SL5 '#' \
   $PATH_WFMASH \
   $CHR \
-  48
+  24 2> fasta+paf2gfa+vcf.log
 
 PATH_VCF_GZ=$CHR.s$s.l$l.p$p.n$n.k0.vcf.gz
 
 # Fix CHROM (to match the CHROM in the truth variant set)
 mv $PATH_VCF_GZ xxx.vcf.gz
-zcat xxx.vcf.gz | sed 's/SL5#1#ch//g' | sed 's/^0//g' | sed 's/##contig=<ID=0/##contig=<ID=/g' | bgzip -c -@ 48 > $PATH_VCF_GZ
+zcat xxx.vcf.gz | sed 's/SL5#1#ch//g' | sed 's/^0//g' | sed 's/##contig=<ID=0/##contig=<ID=/g' | bgzip -c -@ 24 > $PATH_VCF_GZ
 rm xxx.vcf.gz
 
 #echo "Realign REF/ALT alleles"
 #PATH_VCF_WAVED_GZ=$CHR.s$s.l$l.p$p.n$n.k0.waved.vcf.gz
-#vcfbub -l 0 -a 100000 --input $PATH_VCF_GZ | $vcfwave -I 1000 -t 48 | bgzip -c -@ 48 > $PATH_VCF_WAVED_GZ
+#vcfbub -l 0 -a 100000 --input $PATH_VCF_GZ | $vcfwave -I 1000 -t 24 | bgzip -c -@ 24 > $PATH_VCF_WAVED_GZ
 
 # Compare query/truth
 for SAMPLE in PP TS204 TS281 TS413 TS629 TS96; do
@@ -68,7 +68,7 @@ for SAMPLE in PP TS204 TS281 TS413 TS629 TS96; do
     -t $PATH_REF_SDF \
     -b $TRUTH_VCF_GZ \
     -c $QUERY_VCF_GZ \
-    -T 48 \
+    -T 24 \
     -o vcfeval/$SAMPLE/vg
 
 #  bash /lizardfs/guarracino/wfmash-paper/scripts/vcf_preprocess.sh \
@@ -82,7 +82,7 @@ for SAMPLE in PP TS204 TS281 TS413 TS629 TS96; do
 #    -t $PATH_REF_SDF \
 #    -b $TRUTH_VCF_GZ \
 #    -c $QUERY_WAVED_VCF_GZ \
-#    -T 48 \
+#    -T 24 \
 #    -o vcfeval/$SAMPLE/vcfwave
 done
 

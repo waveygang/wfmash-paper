@@ -7,7 +7,7 @@ x$chromosome <- factor(x$chromosome, levels = unique(x[order(as.integer(gsub("[^
 
 ################################################################################
 # Sort branches as needed
-x$branch <- factor(x$branch, levels = c('fixed-0-4-6-1', 'fixed-0-7-11-1', 'fixed-0-11-17-1'))
+x$branch <- factor(x$branch, levels = c('fixed-0-4-6-1', 'fixed-0-7-11-1', 'fixed-0-11-17-1', 'poly'))
 ################################################################################
 
 xx <- x %>%
@@ -41,8 +41,10 @@ if (FALSE) {
 
 ggplot(xx %>% filter(vcf == 'vg'), aes(x = branch, y = value, fill=branch, label = sample)) +
   geom_boxplot(outlier.shape = NA) +
-  geom_jitter(size=1, alpha=0.9, aes(color=branch)) +
-  ylim(min(xx$value), 1) +
+  geom_jitter(size=1.1, alpha=0.9, color='black') +
+ # geom_jitter(size=1, alpha=0.9, aes(color=branch)) +
+  ylim(0.7, 1) +
+  #ylim(min(xx$value), 1) +
   #ggrepel::geom_text_repel(
   #  size=2,
   #  max.iter=10,
@@ -51,8 +53,10 @@ ggplot(xx %>% filter(vcf == 'vg'), aes(x = branch, y = value, fill=branch, label
   #  max.overlaps=Inf
   #) +
   facet_grid(metric~chromosome, scales = "free") + 
+  ggtitle('mini tomato: -s 10k -l 50k -p 80 -n 7') +
   theme_bw() +
   theme(
     legend.position = "top",
-    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+    plot.title = element_text(hjust = 0.5)
     )

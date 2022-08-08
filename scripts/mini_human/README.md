@@ -6,7 +6,7 @@ Run:
 s=10k
 l=50k
 p=80
-n=7
+n=14
 DIR_OUTPUT=/lizardfs/guarracino/wfmash-paper/human/tests
 
 
@@ -23,7 +23,7 @@ PATH_WFMASH=/home/guarracino/tools/wfmash/build/bin/wfmash-poly-pen
 PREFIX=poly
 
 (seq 1 22; echo X; echo Y) | while read i; do
-  sbatch -p workers -c 48 --job-name tomato --wrap "hostname; \time -v bash /lizardfs/guarracino/wfmash-paper/scripts/mini_human/single_human_chr.sh $s $l $p $n $i $PATH_WFMASH $PREFIX $DIR_OUTPUT"
+  sbatch -p workers -c 24 --job-name human --wrap "hostname; \time -v bash /lizardfs/guarracino/wfmash-paper/scripts/mini_human/single_human_chr.sh $s $l $p $n $i $PATH_WFMASH $PREFIX $DIR_OUTPUT"
 done
 ```
 
