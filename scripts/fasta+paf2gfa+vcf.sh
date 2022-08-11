@@ -24,7 +24,7 @@ GFA=${PREFIX}.s${SEGMENT_LEN}.l${BLOCK_LEN}.p$IDENTITY.n${NUM_HAPLOTYPES}.k0.gfa
 VCF=${PREFIX}.s${SEGMENT_LEN}.l${BLOCK_LEN}.p$IDENTITY.n${NUM_HAPLOTYPES}.k0.vcf.gz
 
 echo "All-vs-all alignment"
-\time -v "$PATH_WFMASH" "$FASTA" "$FASTA" -X -s "$SEGMENT_LEN" -l "$BLOCK_LEN" -p "$IDENTITY" -n "$NUM_HAPLOTYPES" -t "$THREADS" > "$PAF"
+\time -v $PATH_WFMASH "$FASTA" "$FASTA" -X -s "$SEGMENT_LEN" -l "$BLOCK_LEN" -p "$IDENTITY" -n "$NUM_HAPLOTYPES" -t "$THREADS" > "$PAF"
 
 echo "Graph induction"
 # -k 0` is for getting a lossless representation of the pairwise alignment
