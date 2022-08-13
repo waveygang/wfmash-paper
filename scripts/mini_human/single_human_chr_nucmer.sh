@@ -22,7 +22,7 @@ cd /scratch/$CHR
 
 PATH_FASTA_GZ=${DIR_GENOMES}/chr${i}hg00.masked.fa.gz
 
-bash /lizardfs/guarracino/wfmash-paper/scripts/fasta+paf2gfa+vcf.sh \
+bash /lizardfs/guarracino/wfmash-paper/scripts/fasta+paf2gfa.sh \
   $PATH_FASTA_GZ \
   $s $l $p $n \
   "$PATH_WFMASH" \
