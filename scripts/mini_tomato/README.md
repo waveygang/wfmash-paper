@@ -3,27 +3,26 @@
 Run:
 
 ```shell
-s=10k
-l=50k
+s=20k
+l=100k
 p=80
-n=7
+n=6 # 7 - 1
 DIR_OUTPUT=/lizardfs/guarracino/wfmash-paper/tomato/tests/
 
 
-PATH_WFMASH=/home/guarracino/tools/wfmash/build/bin/wfmash-fixed-low-pen
+PATH_WFMASH="/home/guarracino/tools/wfmash/build/bin/wfmash-fixed-0-4-6-1 -w 512"
 PREFIX=fixed-0-4-6-1
 
-PATH_WFMASH=/home/guarracino/tools/wfmash/build/bin/wfmash-fixed-med-pen
+PATH_WFMASH="/home/guarracino/tools/wfmash/build/bin/wfmash-fixed-0-7-11-1 -w 512"
 PREFIX=fixed-0-7-11-1
 
-PATH_WFMASH=/home/guarracino/tools/wfmash/build/bin/wfmash-fixed-high-pen
-PREFIX=fixed-0-11-17-1
+PATH_WFMASH="/home/guarracino/tools/wfmash/build/bin/wfmash-fixed-0-11-17-1 -w 512"
 
-PATH_WFMASH=/home/guarracino/tools/wfmash/build/bin/wfmash-poly-pen
+PATH_WFMASH="/home/guarracino/tools/wfmash/build/bin/wfmash-poly -w 512"
 PREFIX=poly
 
-seq 1 12 | while read i; do
-  sbatch -p workers -c 24 --job-name tomato --wrap "hostname; \time -v bash /lizardfs/guarracino/wfmash-paper/scripts/mini_tomato/single_tomato_chr.sh $s $l $p $n $i $PATH_WFMASH $PREFIX $DIR_OUTPUT"
+(seq 1 22; echo X; echo Y) | while read i; do
+  sbatch -p workers -c 48 --job-name tomato --wrap "hostname; \time -v bash /lizardfs/guarracino/wfmash-paper/scripts/mini_tomato/single_tomato_chr.sh $s $l $p $n $i '$PATH_WFMASH' $PREFIX $DIR_OUTPUT"
 done
 ```
 

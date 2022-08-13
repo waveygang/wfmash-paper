@@ -41,7 +41,7 @@ if (FALSE) {
 
 ggplot(xx %>% filter(vcf == 'vg'), aes(x = branch, y = value, fill=branch, label = sample)) +
   geom_boxplot(outlier.shape = NA) +
-  geom_jitter(size=1.1, alpha=0.9, color='black') +
+  geom_jitter(size=0.7, alpha=0.7, color='black') +
  # geom_jitter(size=1, alpha=0.9, aes(color=branch)) +
   ylim(0.7, 1) +
   #ylim(min(xx$value), 1) +
@@ -52,8 +52,9 @@ ggplot(xx %>% filter(vcf == 'vg'), aes(x = branch, y = value, fill=branch, label
   #  show.legend=FALSE, # to hide the `a` from the legend
   #  max.overlaps=Inf
   #) +
-  facet_grid(metric~chromosome, scales = "free") + 
-  ggtitle('mini tomato: -s 10k -l 50k -p 80 -n 7') +
+  #facet_grid(metric~chromosome, scales = "free") + 
+  facet_grid(~metric, scales = "free") + 
+  ggtitle('mini tomato: -s 20k -l 100k -p 80 -n 6') +
   theme_bw() +
   theme(
     legend.position = "top",
