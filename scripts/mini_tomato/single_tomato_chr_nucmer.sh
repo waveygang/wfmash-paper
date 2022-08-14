@@ -16,9 +16,9 @@ DIR_GENOMES=/lizardfs/guarracino/wfmash-paper/tomato/genomes
 
 CHR=chr$i
 
-rm -rf /scratch/$CHR
-mkdir -p /scratch/$CHR
-cd /scratch/$CHR
+rm -rf /scratch/tomato-nucmer-$PREFIX-$CHR
+mkdir -p /scratch/tomato-nucmer-$PREFIX-$CHR
+cd /scratch/tomato-nucmer-$PREFIX-$CHR || exit
 
 PATH_FASTA_GZ=${DIR_GENOMES}/chr$i.fa.gz
 
@@ -39,4 +39,4 @@ DIR_OUTPUT_PREFIX=$DIR_OUTPUT/$PREFIX
 mkdir -p $DIR_OUTPUT_PREFIX
 
 cd /scratch/
-mv /scratch/$CHR $DIR_OUTPUT_PREFIX
+mv /scratch/tomato-nucmer-$PREFIX-$CHR $DIR_OUTPUT_PREFIX/$CHR
