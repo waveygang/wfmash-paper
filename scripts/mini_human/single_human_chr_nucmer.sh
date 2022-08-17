@@ -27,7 +27,7 @@ bash /lizardfs/guarracino/wfmash-paper/scripts/fasta+paf2gfa.sh \
   $s $l $p $n \
   "$PATH_WFMASH" \
   $CHR \
-  48 | tee fasta+paf2gfa+vcf.log
+  48
 
 PATH_GFA=$CHR.s$s.l$l.p$p.n$n.k0.gfa
 
