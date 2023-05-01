@@ -48,7 +48,7 @@ for SAMPLE in HG00438 HG00621 HG00673 HG00733 HG00735 HG00741; do
     $PATH_REF_FASTA \
     $CHR \
     50
-  QUERY_VCF_GZ=$CHR.s$s.l$l.p$p.n$n.k0.norm.max50.vcf.gz
+  QUERY_VCF_GZ=$CHR.norm.max50.vcf.gz
 
   rtg vcfeval \
     -t $PATH_REF_SDF \
