@@ -1,31 +1,22 @@
 #!/bin/bash
 
-PATH_SEQWISH=/home/guarracino/tools/seqwish/bin/seqwish-ccfefb016fcfc9937817ce61dc06bbcf382be75e
-PATH_VG=/home/guarracino/tools/vg
-
 # Inputs
 FASTA=$1
-SEGMENT_LEN=$2
-BLOCK_LEN=$3
-IDENTITY=$4
-NUM_HAPLOTYPES=$5
-REFERENCE_PREFIX=$6
-SEPARATOR=$7
-PATH_WFMASH=$8
-PREFIX=$9
-THREADS=${10}
+PAF=$2
+REFERENCE_PREFIX=$3
+REFERENCE_SEPARATOR=$4
+OUTPUT_PREFIX=$5
+THREADS=$6
 
 # Paths
-PAF=${PREFIX}.s${SEGMENT_LEN}.l${BLOCK_LEN}.p$IDENTITY.n${NUM_HAPLOTYPES}.paf
-GFA=${PREFIX}.s${SEGMENT_LEN}.l${BLOCK_LEN}.p$IDENTITY.n${NUM_HAPLOTYPES}.k0.gfa
-VCF=${PREFIX}.s${SEGMENT_LEN}.l${BLOCK_LEN}.p$IDENTITY.n${NUM_HAPLOTYPES}.k0.vcf.gz
-
-echo "All-vs-all alignment"
-\time -v $PATH_WFMASH "$FASTA" "$FASTA" -X -s "$SEGMENT_LEN" -l "$BLOCK_LEN" -p "$IDENTITY" -n "$NUM_HAPLOTYPES" -t "$THREADS" > "$PAF"
+SEQWISH=/home/guarracino/tools/seqwish/bin/seqwish
+VG=/home/guarracino/tools/vg
 
 echo "Graph induction"
+GFA=${OUTPUT_PREFIX}.gfa
 # -k 0` is for getting a lossless representation of the pairwise alignment
-\time -v ${PATH_SEQWISH} -s "$FASTA" -p "$PAF" -g "$GFA" -k 0 -B 10M -t "$THREADS" -P
+\time -v "$SEQWISH" -s "$FASTA" -p "$PAF" -g "$GFA" -k 0 -B 10M -t "$THREADS" -P
 
-echo "Identify variants"
-\time -v ${PATH_VG} deconstruct -e -a -P "$REFERENCE_PREFIX" -H "$SEPARATOR" "$GFA" -t "$THREADS" | bgzip -c > "$VCF" && tabix "$VCF"
+echo "Variant identification"
+VCF=${OUTPUT_PREFIX}.vcf.gz
+\time -v "$VG" deconstruct -P "$REFERENCE_PREFIX" -H "$REFERENCE_SEPARATOR" -e -a -t "$THREADS" "$GFA" | bgzip -c -@ "$THREADS" -l 9 > "$VCF" && tabix "$VCF"
