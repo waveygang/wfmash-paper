@@ -26,12 +26,9 @@ fi
 DIR_SCRIPT=$( cd -- "$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}" )" )" &> /dev/null && pwd )
 
 # Extract unique query and target names
-##QUERY_NAMES=$(cut -f 1 "$PATH_PAF" | sort -u)
-##TARGET_NAMES=$(cut -f 6 "$PATH_PAF" | sort -u)
 QUERY_TARGET_PAIRS=$(cut -f 1,6 "$PATH_PAF" | sort -u)
 
 # Calculate total number of iterations
-##TOTAL=$(( $(echo "$QUERY_NAMES" | wc -l) * $(echo "$TARGET_NAMES" | wc -l) ))
 TOTAL=$(echo "$QUERY_TARGET_PAIRS" | wc -l)
 
 # Initialize counter
