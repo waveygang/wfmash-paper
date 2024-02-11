@@ -12,7 +12,7 @@ ls scerevisiae7.*.tsv -lh
     -rw-r--r-- 1 guarracino guarracino  15K Feb 11 10:27 scerevisiae7.report.genomes.tsv
 
 head scerevisiae7.report.features.tsv -n 5 | column -t
-    feature.name  query             query.feature.start  query.feature.end  query.strand  target            target.feature.start  target.feature.end  aligned.bases  not.aligned.in.query.bp  not.aligned.in.target.bp
+    feature.name  query             query.feature.start  query.feature.end  query.strand  target            target.feature.start  target.feature.end  aligned.bp  not.aligned.in.query.bp  not.aligned.in.target.bp
     12947at4891   DBVPG6765#1#chrI  147566               148823             +             DBVPG6044#1#chrI  141399                142647              1248           9                        0
     13507at4891   DBVPG6765#1#chrI  157130               158267             +             DBVPG6044#1#chrI  156929                158066              1137           0                        0
     15784at4891   DBVPG6765#1#chrI  61639                62743              +             DBVPG6044#1#chrI  60782                 61886               1104           0                        0

@@ -43,7 +43,7 @@ def count_aligned_bases(query_start, query_end, query_strand, target_start, targ
     return aligned_bases, not_aligned_bases_query, not_aligned_bases_target
 
 
-print('\t'.join(['feature.name', 'query', 'query.feature.start', 'query.feature.end', 'query.strand', 'target', 'target.feature.start', 'target.feature.end', 'aligned.bases', 'not.aligned.in.query.bp', 'not.aligned.in.target.bp']))
+print('\t'.join(['feature.name', 'query', 'query.feature.start', 'query.feature.end', 'query.strand', 'target', 'target.feature.start', 'target.feature.end', 'aligned.bp', 'not.aligned.in.query.bp', 'not.aligned.in.target.bp']))
 
 if not sys.stdin.isatty():  # Standard input is connected to something (file, pipe)
     for line in sys.stdin:
