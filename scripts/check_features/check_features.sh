@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # Input arguments
-PATH_PAF=$1 # It assumes a WFMASH PAF. TODO: to make it general, to support also other sequence aligners
-PATH_BED=$2 # It assumes that the BED file contains the feature names in the 4th column and strand information in the 6th column
-DIR_TEMP_STUFF=$3
+PATH_PAF=$1         # It assumes a WFMASH PAF. TODO: to make it general, to support also other sequence aligners
+PATH_BED=$2         # It assumes that the BED file contains the feature names in the 4th column and strand information in the 6th column
+MAX_INDEL_SIZE=$3   # Max indel size to allow in the alignment covering the feature intervals (-1 to disable such a filter)
+OUTPUT_PREFIX=$4    # Prefix for the output files (/path/where/to/write/the/output/prefix)
+DIR_TEMP_STUFF=$5   # Directory to store temporary files
 
 # Check for file existence and non-emptiness
 for file in "$PATH_PAF" "$PATH_BED"; do
@@ -16,11 +18,16 @@ for file in "$PATH_PAF" "$PATH_BED"; do
     fi
 done
 
-# Check if the directory exists
-if [ ! -d "$DIR_TEMP_STUFF" ]; then
-    echo "ERROR: $DIR_TEMP_STUFF does not exist"
-    exit 1
-fi
+# Extract the directory path from the OUTPUT_PREFIX
+DIR_OUTPUT=$(dirname "$OUTPUT_PREFIX")
+
+# Check if the directories exists
+for directory in "$DIR_TEMP_STUFF" "$DIR_OUTPUT"; do
+    if [ ! -d "$directory" ]; then
+        echo "ERROR: $directory does not exist"
+        exit 1
+    fi
+done
 
 # Get script's directory
 DIR_SCRIPT=$( cd -- "$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}" )" )" &> /dev/null && pwd )
@@ -41,10 +48,10 @@ function update_progress {
 }
 
 # Feature-level report
-PATH_FEATURE_TSV=$(basename "$PATH_PAF" .paf).report.features.tsv
+PATH_FEATURE_TSV=$OUTPUT_PREFIX.report.features.tsv
 
 # Genome-level report
-PATH_GENOME_TSV=$(basename "$PATH_PAF" .paf).report.genomes.tsv
+PATH_GENOME_TSV=$OUTPUT_PREFIX.report.genomes.tsv
 
 # Put the header
 python3 $DIR_SCRIPT/feature_level_report.py > "$PATH_FEATURE_TSV"
@@ -82,7 +89,7 @@ echo "$QUERY_TARGET_PAIRS" | while IFS=$'\t' read -r query target; do
         }' | cut -f 1-12,20- | pigz -9 > "$DIR_TEMP_STUFF/$NAME.joined.paf.gz"
 
     # Generate gene-level report
-    zcat "$DIR_TEMP_STUFF/$NAME.joined.paf.gz" | python3 $DIR_SCRIPT/feature_level_report.py | sed '1d' >> $PATH_FEATURE_TSV
+    python3 $DIR_SCRIPT/feature_level_report.py -i "$DIR_TEMP_STUFF/$NAME.joined.paf.gz" -m $MAX_INDEL_SIZE | sed '1d' >> $PATH_FEATURE_TSV
 
     # Remove the temporary files
     rm "$DIR_TEMP_STUFF/$NAME.paf" "$DIR_TEMP_STUFF/$NAME.query.bed" "$DIR_TEMP_STUFF/$NAME.target.bed" "$DIR_TEMP_STUFF/$NAME.query.paf" "$DIR_TEMP_STUFF/$NAME.target.paf" "$DIR_TEMP_STUFF/$NAME.joined.paf.gz"
