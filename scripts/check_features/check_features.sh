@@ -56,6 +56,8 @@ PATH_GENOME_TSV=$OUTPUT_PREFIX.report.genomes.tsv
 # Put the header
 python3 $DIR_SCRIPT/feature_level_report.py > "$PATH_FEATURE_TSV"
 
+update_progress
+
 # Check present pairs of query and target names
 echo "$QUERY_TARGET_PAIRS" | while IFS=$'\t' read -r query target; do
     #echo "$query - $target"
@@ -76,8 +78,8 @@ echo "$QUERY_TARGET_PAIRS" | while IFS=$'\t' read -r query target; do
     # TODO: what happens if the gene is covered by more mappings/alignments in one genome than in the other
     # Join the two files by the alignment columns + the gene name
     join -1 1 -2 1 \
-        <(awk -v OFS='\t' '{concat=$1; for(i=2;i<=20;i++) concat=concat "___" $i; concat=concat "___" $24; print(concat,$21,$22,$23,$25,$26,$27)}' "$DIR_TEMP_STUFF/$NAME.query.paf"  | sort -T /scratch) \
-        <(awk -v OFS='\t' '{concat=$1; for(i=2;i<=20;i++) concat=concat "___" $i; concat=concat "___" $24; print(concat,$21,$22,$23,$25,$26,$27)}' "$DIR_TEMP_STUFF/$NAME.target.paf" | sort -T /scratch) |
+        <(awk -v OFS='\t' '{concat=$1; for(i=2;i<=20;i++) concat=concat "___" $i; concat=concat "___" $24; print(concat,$21,$22,$23,$25,$26,$27)}' "$DIR_TEMP_STUFF/$NAME.query.paf"  | sort -T $DIR_TEMP_STUFF) \
+        <(awk -v OFS='\t' '{concat=$1; for(i=2;i<=20;i++) concat=concat "___" $i; concat=concat "___" $24; print(concat,$21,$22,$23,$25,$26,$27)}' "$DIR_TEMP_STUFF/$NAME.target.paf" | sort -T $DIR_TEMP_STUFF) |
         # Deconcatenate the joined column back into original columns
         awk '{
             # Split the first field into array `a` using the "|" delimiter

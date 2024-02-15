@@ -44,6 +44,10 @@ def count_aligned_bases(query_start, query_end, query_strand, target_start, targ
                 if max_indel_size is None or length > max_indel_size:
                     not_aligned_bases_query += min(length, feature_in_query_end - query_pos, query_pos - length - feature_in_query_start)
 
+        # Check if we have already passed the features in both query and target
+        if (query_rev and query_pos <= feature_in_query_start or not query_rev and query_pos >= feature_in_query_end) and target_pos >= feature_in_target_end:
+            break
+
     return aligned_bases, not_aligned_bases_query, not_aligned_bases_target
 
 def main(input_file, max_indel_size=None):
