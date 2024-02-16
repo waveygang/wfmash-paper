@@ -36,24 +36,34 @@ DIR_SCRIPT=$( cd -- "$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}" )" )" &> /d
 # Extract unique query and target names
 QUERY_TARGET_PAIRS=$(cut -f 1,6 "$PATH_PAF" | sort -u)
 
+# Calculate total number of iterations
+TOTAL=$(echo "$QUERY_TARGET_PAIRS" | wc -l)
+
+# Initialize counter
+COUNT=0
+
+# Function to update progress bar
+function update_progress {
+    local PERCENT=$((100 * COUNT / TOTAL))
+    printf "\r$COUNT / $TOTAL - $PERCENT%%"
+}
+
 # Feature-level report
 PATH_FEATURE_TSV=$OUTPUT_PREFIX.report.features.tsv
 
 # Genome-level report
 PATH_GENOME_TSV=$OUTPUT_PREFIX.report.genomes.tsv
 
-process_pair() {
-    local query="$1"
-    local target="$2"
-    local DIR_TEMP_STUFF="$3"
-    local PATH_PAF="$4"
-    local PATH_BED="$5"
-    local MAX_INDEL_SIZE="$6"
-    local NUM_THREADS="$7"
-    local OUTPUT_PREFIX="$8"
-    local PATH_FEATURE_TSV="$9"
+# Put the header in the feature-level report
+feature_level_report > "$PATH_FEATURE_TSV"
 
-    local NAME=$(basename "$PATH_PAF" .paf)."$query"-"$target"
+update_progress
+
+# Check present pairs of query and target names
+echo "$QUERY_TARGET_PAIRS" | while IFS=$'\t' read -r query target; do
+    #echo "$query - $target"
+
+    NAME=$(basename $PATH_PAF .paf).$query-$target
 
     # Extract the alignments for the current query-target pair
     grep -P "^$query\t" "$PATH_PAF" | grep -P "\t$target\t" > "$DIR_TEMP_STUFF/$NAME.paf"
@@ -62,7 +72,7 @@ process_pair() {
     grep -P "^$query\t" "$PATH_BED" > "$DIR_TEMP_STUFF/$NAME.query.bed"
     grep -P "^$target\t" "$PATH_BED" > "$DIR_TEMP_STUFF/$NAME.target.bed"
 
-    # Take alignments covering the single-copy BUSCO genes and process further
+    # Take alignments covering the single-copy BUSCO genes
     bedtools intersect -a <(awk -v OFS='\t' '{print($1,$3,$4,$0)}' "$DIR_TEMP_STUFF/$NAME.paf") -b "$DIR_TEMP_STUFF/$NAME.query.bed"  -wa -wb | cut -f 4- > "$DIR_TEMP_STUFF/$NAME.query.paf"
     bedtools intersect -a <(awk -v OFS='\t' '{print($6,$8,$9,$0)}' "$DIR_TEMP_STUFF/$NAME.paf") -b "$DIR_TEMP_STUFF/$NAME.target.bed" -wa -wb | cut -f 4- > "$DIR_TEMP_STUFF/$NAME.target.paf"
 
@@ -81,16 +91,14 @@ process_pair() {
             printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $8, $9, $10, a[21], $11, $12, $13);
         }' | cut -f 1-12,20- | pigz -p $NUM_THREADS > "$DIR_TEMP_STUFF/$NAME.joined.paf.gz"
 
-    # Append the feature-level report data to the final TSV
-    feature_level_report -i "$DIR_TEMP_STUFF/$NAME.joined.paf.gz" -m "$MAX_INDEL_SIZE" | sed '1d'
+    feature_level_report -i "$DIR_TEMP_STUFF/$NAME.joined.paf.gz" -m $MAX_INDEL_SIZE | sed '1d' >> $PATH_FEATURE_TSV
 
-    # Cleanup
+    # Remove the temporary files
     rm "$DIR_TEMP_STUFF/$NAME.paf" "$DIR_TEMP_STUFF/$NAME.query.bed" "$DIR_TEMP_STUFF/$NAME.target.bed" "$DIR_TEMP_STUFF/$NAME.query.paf" "$DIR_TEMP_STUFF/$NAME.target.paf" "$DIR_TEMP_STUFF/$NAME.joined.paf.gz"
-}
-export -f process_pair
 
-# Put the header into the feature-level report file and execute processing in parallel
-(feature_level_report; echo "$QUERY_TARGET_PAIRS" | parallel --progress --colsep $'\t' -j "$NUM_THREADS" process_pair {1} {2} "$DIR_TEMP_STUFF" "$PATH_PAF" "$PATH_BED" "$MAX_INDEL_SIZE" "$NUM_THREADS" "$OUTPUT_PREFIX" "$PATH_FEATURE_TSV"  | sort -T $DIR_TEMP_STUFF) >> "$PATH_FEATURE_TSV"
+    ((COUNT++))
+    update_progress
+done
 
 # generate genome-level report
 echo "query num.features.in.query target  num.feature.in.target num.features.in.common aligned.bases not.aligned.in.query.bp not.aligned.in.target.bp" | tr ' ' '\t' > $PATH_GENOME_TSV
