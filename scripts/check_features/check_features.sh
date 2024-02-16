@@ -131,7 +131,6 @@ generate_genome_report() {
 }
 export -f generate_genome_report
 
-
 # generate genome-level report
 echo "query num.features.in.query target  num.feature.in.target num.features.in.common aligned.bases not.aligned.in.query.bp not.aligned.in.target.bp indels.in.query.bp indels.in.target.bp ignored.in.query.bp ignored.in.target.bp" | tr ' ' '\t' > "$PATH_GENOME_TSV"
 
