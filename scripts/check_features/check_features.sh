@@ -36,6 +36,9 @@ DIR_SCRIPT=$( cd -- "$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}" )" )" &> /d
 # Extract unique query and target names
 QUERY_TARGET_PAIRS=$(cut -f 1,6 "$PATH_PAF" | sort -u)
 
+# Calculate total number of pairs
+NUM_PAIRS=$(echo "$QUERY_TARGET_PAIRS" | wc -l)
+
 # Feature-level report
 PATH_FEATURE_TSV=$OUTPUT_PREFIX.report.features.tsv
 
@@ -79,7 +82,7 @@ process_pair() {
             for(i=1; i<=20; i++) printf("%s\t", a[i]);
             printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t", $2, $3, $4, a[21], $5, $6, $7);
             printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $8, $9, $10, a[21], $11, $12, $13);
-        }' | cut -f 1-12,20- | pigz -p $NUM_THREADS > "$DIR_TEMP_STUFF/$NAME.joined.paf.gz"
+        }' | cut -f 1-12,20- | pigz > "$DIR_TEMP_STUFF/$NAME.joined.paf.gz"
 
     # Append the feature-level report data to the final TSV
     feature_level_report -i "$DIR_TEMP_STUFF/$NAME.joined.paf.gz" -m "$MAX_INDEL_SIZE" | sed '1d'
@@ -89,8 +92,14 @@ process_pair() {
 }
 export -f process_pair
 
-# Put the header into the feature-level report file and execute processing in parallel
-(feature_level_report; echo "$QUERY_TARGET_PAIRS" | parallel --progress --colsep $'\t' -j "$NUM_THREADS" process_pair {1} {2} "$DIR_TEMP_STUFF" "$PATH_PAF" "$PATH_BED" "$MAX_INDEL_SIZE" "$NUM_THREADS" "$OUTPUT_PREFIX" "$PATH_FEATURE_TSV"  | sort -T $DIR_TEMP_STUFF) >> "$PATH_FEATURE_TSV"
+# Put the header into the feature-level report file
+feature_level_report > "$PATH_FEATURE_TSV"
+
+# Execute processing in parallel
+JOBLOG="$OUTPUT_PREFIX.parallel.log" # --progress creates issues with sbatch (sh: line 1: /dev/tty: No such device or address)
+echo "Processing $NUM_PAIRS query-target pairs in parallel using $NUM_THREADS threads. The log is stored in $JOBLOG."
+
+echo "$QUERY_TARGET_PAIRS" | parallel --no-notice --joblog "$JOBLOG" --colsep $'\t' -j "$NUM_THREADS" process_pair {1} {2} "$DIR_TEMP_STUFF" "$PATH_PAF" "$PATH_BED" "$MAX_INDEL_SIZE" "$NUM_THREADS" "$OUTPUT_PREFIX" "$PATH_FEATURE_TSV" | sort -T $DIR_TEMP_STUFF >> "$PATH_FEATURE_TSV"
 
 # generate genome-level report
 echo "query num.features.in.query target  num.feature.in.target num.features.in.common aligned.bases not.aligned.in.query.bp not.aligned.in.target.bp" | tr ' ' '\t' > $PATH_GENOME_TSV

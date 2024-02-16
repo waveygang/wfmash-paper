@@ -5,9 +5,11 @@ DIR_WF_PAPER=/lizardfs/guarracino/wfmash-paper/
 
 cd ~
 
-wfmash $DIR_WF_PAPER/assemblies/scerevisiae/scerevisiae7.fa.gz -t 48 --lower-triangular > scerevisiae7.paf
+wfmash $DIR_WF_PAPER/assemblies/scerevisiae/scerevisiae7.fa.gz -t 48 --lower-triangular > $DIR_WF_PAPER/alignment/scerevisiae/scerevisiae7.paf
 
-bash $DIR_WF_PAPER/scripts/check_features/check_features.sh scerevisiae7.paf $DIR_BASE/alignment/scerevisiae/scerevisiae.busco-genes.single.bed 50 ./scerevisiae7.m50 /scratch
+export PATH="/home/guarracino/tools/feature_level_report/target/release:$PATH"
+
+bash $DIR_WF_PAPER/scripts/check_features/check_features.sh $DIR_WF_PAPER/alignment/scerevisiae/scerevisiae7.paf $DIR_BASE/alignment/scerevisiae/scerevisiae.busco-genes.single.bed 50 ./scerevisiae7.m50 48 /scratch
 
 ls scerevisiae7.m50.*.tsv -lh
     -rw-r--r-- 1 guarracino guarracino 1.3M Feb 14 15:45 scerevisiae7.m50.report.features.tsv
