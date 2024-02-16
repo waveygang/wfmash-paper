@@ -99,7 +99,7 @@ feature_level_report > "$PATH_FEATURE_TSV"
 JOBLOG="$OUTPUT_PREFIX.parallel.log" # --progress creates issues with sbatch (sh: line 1: /dev/tty: No such device or address)
 echo "Processing $NUM_PAIRS query-target pairs in parallel using $NUM_THREADS threads. The log is stored in $JOBLOG."
 
-echo "$QUERY_TARGET_PAIRS" | parallel --no-notice --joblog "$JOBLOG" --colsep $'\t' -j "$NUM_THREADS" process_pair {1} {2} "$DIR_TEMP_STUFF" "$PATH_PAF" "$PATH_BED" "$MAX_INDEL_SIZE" "$NUM_THREADS" "$OUTPUT_PREFIX" "$PATH_FEATURE_TSV" | sort -T $DIR_TEMP_STUFF >> "$PATH_FEATURE_TSV"
+echo "$QUERY_TARGET_PAIRS" | parallel --no-notice --joblog "$JOBLOG" --colsep $'\t' -j "$NUM_THREADS" process_pair {1} {2} "$DIR_TEMP_STUFF" "$PATH_PAF" "$PATH_BED" "$MAX_INDEL_SIZE" "$NUM_THREADS" "$OUTPUT_PREFIX" "$PATH_FEATURE_TSV" >> "$PATH_FEATURE_TSV"
 
 # generate genome-level report
 echo "query num.features.in.query target  num.feature.in.target num.features.in.common aligned.bases not.aligned.in.query.bp not.aligned.in.target.bp" | tr ' ' '\t' > $PATH_GENOME_TSV
