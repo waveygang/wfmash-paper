@@ -33,22 +33,22 @@ done
 
 ## AnchorWave
 
-#anchorwave gff2seq -i ${ref}.gene.gff -r ${ref}.fa -o ${ref}.filter.cds.fa
-#minimap2 -x splice -t 10 -k 12 -a -p 0.4 -N 20 ${ref}.fa ${ref}.filter.cds.fa > ${ref}.cds.sam
+$time -f "$fmt" anchorwave gff2seq -i ${ref}.gene.gff -r ${ref}.fa -o ${ref}.filter.cds.fa
+$time -f "$fmt" minimap2 -x splice -t 10 -k 12 -a -p 0.4 -N 20 ${ref}.fa ${ref}.filter.cds.fa > ${ref}.cds.sam
 
-#$time -f "$fmt" minimap2 -x splice -t 10 -k 12 -a -p 0.4 -N 20 ${sample}.fa ${ref}.filter.cds.fa > ${sample}.cds.sam
+$time -f "$fmt" minimap2 -x splice -t 10 -k 12 -a -p 0.4 -N 20 ${sample}.fa ${ref}.filter.cds.fa > ${sample}.cds.sam
 
 ## within-species with inverison
 
-#$time -f "$fmt" anchorwave genoAli -i ${ref}.gene.gff -as ${ref}.filter.cds.fa -r ${ref}.fa -a ${sample}.cds.sam -ar ${ref}.cds.sam -s ${sample}.fa -n ${sample}.aw.anchors -o ${sample}.aw.maf -f ${sample}.aw.m.maf -IV
-#rm ${sample}.aw.m.maf
+$time -f "$fmt" anchorwave genoAli -i ${ref}.gene.gff -as ${ref}.filter.cds.fa -r ${ref}.fa -a ${sample}.cds.sam -ar ${ref}.cds.sam -s ${sample}.fa -n ${sample}.aw.anchors -o ${sample}.aw.maf -f ${sample}.aw.m.maf -IV
+rm ${sample}.aw.m.maf
 
 ## https://gitlab.com/mcfrith/last/-/blob/main/bin/maf-convert
 
-#python maf-convert sam ${sample}.aw.maf > ${sample}.aw.sam
+$time -f "$fmt" python maf-convert sam ${sample}.aw.maf > ${sample}.aw.sam
 
 # mummmer
-$time -f "$fmt" nucmer --sam-long ${sample}.nucmer.sam --maxmatch -c 500 -b 500 -l 100 -t 8 ${ref}.fa ${sample}.fa
+# $time -f "$fmt" nucmer --sam-long ${sample}.nucmer.sam --maxmatch -c 500 -b 500 -l 100 -t 8 ${ref}.fa ${sample}.fa
 
 ## Variant calling
 ### SVs
