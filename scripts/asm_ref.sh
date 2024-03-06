@@ -72,6 +72,7 @@ done
 
 cat header combine.sam|samtools sort -@ 12 -O bam -o ${sample}.aw_wfmash_mm2.sorted.bam
 rm combine.sam
+samtools index -@ 12 ${sample}.aw_wfmash_mm2.sorted.bam
 
 # cutesv
 cuteSV ${sample}.aw_wfmash_mm2.sorted.bam ${ref}.fa ${sample}.aw_wfmash_mm2.cutesv.vcf ./ \
