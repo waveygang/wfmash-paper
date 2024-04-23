@@ -1,0 +1,31 @@
+Species	Name	Genome	Fastq	Group
+Athaliana	Col-CC			
+Athaliana	IP-Alo-19		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/018/ERR10084518/ERR10084518.fastq.gz	
+Athaliana	IP-San-9		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/008/ERR10084908/ERR10084908.fastq.gz	
+Athaliana	IP-Mos-9		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/097/ERR10084897/ERR10084897.fastq.gz	
+Athaliana	IP-Sln-22		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/018/ERR10084918/ERR10084918.fastq.gz	
+Athaliana	IP-Cat-0		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/048/ERR10084948/ERR10084948.fastq.gz	
+Athaliana	IP-Hom-0		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/020/ERR10084920/ERR10084920.fastq.gz	
+Athaliana	Cvi-0		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/078/ERR10084078/ERR10084078.fastq.gz	
+Athaliana	Etna-2		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR111/062/ERR11193262/ERR11193262.fastq.gz	
+Athaliana	Rabacal-1		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/011/ERR10083811/ERR10083811.fastq.gz	
+Athaliana	Tanz-1		ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR100/ERR10084917/Tanz-1.q20.fastq.gz	
+Athaliana	IP-Hom-4		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/058/ERR10084958/ERR10084958.fastq.gz	
+Athaliana	IP-Tri-0		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR111/020/ERR11196020/ERR11196020.fastq.gz	
+Athaliana	IP-Mdc-14		ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR100/ERR10084946/Mdc-14.q20.fastq.gz	
+Athaliana	IP-Cas-0		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/042/ERR10084942/ERR10084942.fastq.gz	
+Athaliana	IP-Evs-12		ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR100/ERR10084904/Evs-12.q20.fastq.gz	
+Athaliana	BELC-C-10		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/077/ERR10084077/ERR10084077.fastq.gz	
+Athaliana	AUZE-A-5		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/027/ERR10084527/ERR10084527.fastq.gz	
+Athaliana	Ler-0		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/032/ERR10084532/ERR10084532.fastq.gz	
+Athaliana	T850		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR111/013/ERR11193113/ERR11193113.fastq.gz	
+Sly	TS421	https://solgenomics.net/ftp/genomes/TGG/genome/TS421.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/011/SRR15243711/SRR15243711_subreads.fastq.gz	PIM
+Sly	TS22	https://solgenomics.net/ftp/genomes/TGG/genome/TS22.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/008/SRR15243708/SRR15243708_subreads.fastq.gz	PIM
+Sly	TS222	https://solgenomics.net/ftp/genomes/TGG/genome/TS222.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/019/SRR15243719/SRR15243719_subreads.fastq.gz	PIM
+Sly	TS280	https://solgenomics.net/ftp/genomes/TGG/genome/TS280.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/026/SRR15243726/SRR15243726_subreads.fastq.gz	CER
+Sly	TS96	https://solgenomics.net/ftp/genomes/TGG/genome/TS96.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/023/SRR15243723/SRR15243723_subreads.fastq.gz	CER
+Sly	TS39	https://solgenomics.net/ftp/genomes/TGG/genome/TS39.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/024/SRR15243724/SRR15243724_subreads.fastq.gz	CER
+Sly	TS623	https://solgenomics.net/ftp/genomes/TGG/genome/TS623.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/016/SRR15243716/SRR15243716_subreads.fastq.gz	CER
+Sly	TS281	https://solgenomics.net/ftp/genomes/TGG/genome/TS281.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/018/SRR15243718/SRR15243718_subreads.fastq.gz	CER
+Sly	TS204	https://solgenomics.net/ftp/genomes/TGG/genome/TS204.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/006/SRR15243706/SRR15243706_subreads.fastq.gz	BIG
+Sly	TS60	https://solgenomics.net/ftp/genomes/TGG/genome/TS60.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/029/SRR15243729/SRR15243729_subreads.fastq.gz	BIG
