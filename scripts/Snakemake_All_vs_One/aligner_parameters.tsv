@@ -1,0 +1,8 @@
+species	aligner	parameters
+Athaliana	minimap2	asm5
+Athaliana	minimap2	asm10
+Athaliana	minimap2	asm20
+Athaliana	AnchorWave	default
+Athaliana	wfmash	p95_s10k_c20k_l50k
+Athaliana	nucmer	b500c500l100
+Stuberosum	minimap2	asm20

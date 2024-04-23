@@ -1,0 +1,109 @@
+import pandas as pd
+
+def read_metadata(files):
+    """
+    Read species metadata from multiple TSV files using pandas and organize by species and type (ref or query),
+    directly at the top level of the config dictionary.
+    """
+    config = {
+        'references': {},
+        'queries': {}
+    }
+
+    for file_path in files:
+        # Read the TSV file into a pandas DataFrame
+        df = pd.read_csv(file_path, sep='\t',comment="#")
+
+        # Process each row in the DataFrame
+        for _, row in df.iterrows():
+            species = row['species']
+            sample = row['sample']
+            genome_type = row['type']  # 'ref' or 'query'
+
+            # Ensure species entries are initialized if not already present
+            if species not in config['references']:
+                config['references'][species] = []
+            if species not in config['queries']:
+                config['queries'][species] = []
+
+            # Append sample to the appropriate list based on its type
+            if genome_type == 'ref':
+                config['references'][species].append(sample)
+            elif genome_type == 'query':
+                config['queries'][species].append(sample)
+
+    return config
+
+def read_aligner_parameters(file_path):
+    """
+    Read aligner parameters from a TSV file using pandas. Parameters are expected to be in short abbreviation format.
+    """
+    df = pd.read_csv(file_path, sep='\t',comment="#")
+    aligners = {}
+
+    for _, row in df.iterrows():
+        species = row['species']
+        aligner = row['aligner']
+        parameters = row['parameters']  # Short abbreviation
+
+        if species not in aligners:
+            aligners[species] = {}
+        aligners[species][aligner] = parameters
+
+    return aligners
+
+def untangle_parameters(aligner, abbreviation):
+    """
+    Convert abbreviated parameters into full command-line arguments for different aligners using regex.
+    """
+    if aligner == 'minimap2':
+        if abbreviation.startswith('asm'):
+            return f"-x {abbreviation}"
+    elif aligner == 'AnchorWave':
+        # Assuming default parameters for AnchorWave don't need abbreviation handling
+        # and "genoali -IV" is added to all AnchorWave commands
+        return f"genoali -IV"
+    elif aligner == 'wfmash':
+        # Use regex to find 'p' and 's' values
+        p_match = re.search(r'p(\d+)', abbreviation)
+        s_match = re.search(r's(\d+)', abbreviation)
+        c_match = re.search(r'c(\d+)', abbreviation)
+        k_match = re.search(r'k(\d+)', abbreviation)
+        if p_match and s_match and c_match and k_match:
+            return f"-p {p_match.group(1)} -s {s_match.group(1)} -c {c_match.group(1)} -k {k_match.group(1)}"
+    elif aligner == 'nucmer':
+        # Use regex to extract 'c', 'b', and 'l' values
+        c_match = re.search(r'c(\d+)', abbreviation)
+        b_match = re.search(r'b(\d+)', abbreviation)
+        l_match = re.search(r'l(\d+)', abbreviation)
+        if c_match and b_match and l_match:
+            return f"-c {c_match.group(1)} -b {b_match.group(1)} -l {l_match.group(1)}"
+
+    # Return the original abbreviation if it doesn't match any known pattern
+    return abbreviation
+
+
+
+# Example usage with multiple metadata files
+metadata_files = ['Athaliana.metadata.tsv', 'Stuberosum.metadata.tsv']
+aligner_parameters_file = 'aligner_parameters.tsv'
+
+# Read the metadata from multiple files and aligner parameters
+config = read_metadata(metadata_files)
+config['aligners'] = read_aligner_parameters(aligner_parameters_file)
+
+
+include: "rules/all-to-one.smk"
+
+def generate_all_inputs():
+    inputs = []
+    for species, aligners in config['aligners'].items():
+        for aligner in aligners:
+            for sample in config['queries'][species]:
+                params = aligners[aligner]  # Parameter abbreviation from config
+                inputs.append(f"results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.paf")
+    return inputs
+
+rule all:
+    input:
+        generate_all_inputs()
