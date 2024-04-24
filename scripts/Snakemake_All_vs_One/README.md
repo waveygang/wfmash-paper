@@ -5,6 +5,7 @@
     - Rename all fasta into Chr1/Chr2|chr1|chr2, remove any unscaffolded sequences
 
 ## Folder structrure
+```bash
 .
 ├── Athaliana.metadata.tsv
 ├── Snakefile
@@ -32,7 +33,7 @@
 ├── rules
 │   └── all-to-one.smk
 └── species.metadata.tsv
- 
+```
 ## Test
 ```
 snakemake -npr -S Snakefile
