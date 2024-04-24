@@ -36,6 +36,15 @@
 ```
 ## Test
 ```
+### change the installed path in Snakefile for pandepth,deepvariant and wgatools
+### See Snakefile L97-100
+
+config['dv']="/ebio/abt6_projects7/small_projects/zbao/software/DeepVariant/dv-v1.6.0.sif"
+wkdir="/ebio/abt6_projects/AtGraph/tmp/wfmash/Snakemake-workflow"
+config['pandepth']="~/software/PanDepth/bin/pandepth"
+config['wgatools']="~/software/wgatools/wgatools"
+
+### Dry-run for testing
 snakemake -npr -S Snakefile
 ```
 You could see this output
