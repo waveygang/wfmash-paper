@@ -1,24 +1,25 @@
 Species	Name	Genome	Fastq	Group
-Athaliana	Col-CC			
-Athaliana	IP-Alo-19		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/018/ERR10084518/ERR10084518.fastq.gz	
-Athaliana	IP-San-9		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/008/ERR10084908/ERR10084908.fastq.gz	
-Athaliana	IP-Mos-9		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/097/ERR10084897/ERR10084897.fastq.gz	
-Athaliana	IP-Sln-22		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/018/ERR10084918/ERR10084918.fastq.gz	
-Athaliana	IP-Cat-0		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/048/ERR10084948/ERR10084948.fastq.gz	
-Athaliana	IP-Hom-0		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/020/ERR10084920/ERR10084920.fastq.gz	
-Athaliana	Cvi-0		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/078/ERR10084078/ERR10084078.fastq.gz	
-Athaliana	Etna-2		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR111/062/ERR11193262/ERR11193262.fastq.gz	
-Athaliana	Rabacal-1		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/011/ERR10083811/ERR10083811.fastq.gz	
-Athaliana	Tanz-1		ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR100/ERR10084917/Tanz-1.q20.fastq.gz	
-Athaliana	IP-Hom-4		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/058/ERR10084958/ERR10084958.fastq.gz	
-Athaliana	IP-Tri-0		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR111/020/ERR11196020/ERR11196020.fastq.gz	
-Athaliana	IP-Mdc-14		ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR100/ERR10084946/Mdc-14.q20.fastq.gz	
-Athaliana	IP-Cas-0		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/042/ERR10084942/ERR10084942.fastq.gz	
-Athaliana	IP-Evs-12		ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR100/ERR10084904/Evs-12.q20.fastq.gz	
-Athaliana	BELC-C-10		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/077/ERR10084077/ERR10084077.fastq.gz	
-Athaliana	AUZE-A-5		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/027/ERR10084527/ERR10084527.fastq.gz	
-Athaliana	Ler-0		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/032/ERR10084532/ERR10084532.fastq.gz	
-Athaliana	T850		ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR111/013/ERR11193113/ERR11193113.fastq.gz	
+Athaliana	Col-CC	GCA_028009825.2		
+Athaliana	IP-Alo-19	GCA_946410485.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/018/ERR10084518/ERR10084518.fastq.gz	
+Athaliana	IP-San-9	GCA_946404515.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/008/ERR10084908/ERR10084908.fastq.gz	
+Athaliana	IP-Mos-9	GCA_946411805.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/097/ERR10084897/ERR10084897.fastq.gz	
+Athaliana	IP-Sln-22	GCA_946413935.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/018/ERR10084918/ERR10084918.fastq.gz	
+Athaliana	IP-Cat-0	GCA_946414305.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/048/ERR10084948/ERR10084948.fastq.gz	
+Athaliana	IP-Hom-0	GCA_946411425.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/020/ERR10084920/ERR10084920.fastq.gz	
+Athaliana	Cvi-0	GCA_946414125.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/078/ERR10084078/ERR10084078.fastq.gz	
+Athaliana	Etna-2	GCA_949796415.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR111/062/ERR11193262/ERR11193262.fastq.gz	
+Athaliana	Rabacal-1	GCA_946406895.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/011/ERR10083811/ERR10083811.fastq.gz	
+Athaliana	Tanz-1	GCA_946409825.1	ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR100/ERR10084917/Tanz-1.q20.fastq.gz	
+Athaliana	IP-Hom-4	GCA_946406625.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/058/ERR10084958/ERR10084958.fastq.gz	
+Athaliana	IP-Tri-0	GCA_949796485.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR111/020/ERR11196020/ERR11196020.fastq.gz	
+Athaliana	IP-Mdc-14	GCA_946412225.1	ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR100/ERR10084946/Mdc-14.q20.fastq.gz	
+Athaliana	IP-Cas-0	GCA_946411375.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/042/ERR10084942/ERR10084942.fastq.gz	
+Athaliana	IP-Evs-12	GCA_946405545.1	ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR100/ERR10084904/Evs-12.q20.fastq.gz	
+Athaliana	BELC-C-10	GCA_946403525.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/077/ERR10084077/ERR10084077.fastq.gz	
+Athaliana	AUZE-A-5	GCA_946402385.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/027/ERR10084527/ERR10084527.fastq.gz	
+Athaliana	Ler-0	GCA_903064275.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR100/032/ERR10084532/ERR10084532.fastq.gz	
+Athaliana	T850	GCA_949796645.1	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR111/013/ERR11193113/ERR11193113.fastq.gz	
+Sly	SL5	https://solgenomics.net/ftp/genomes/TGG/genome/SL5.0.fasta.gz	/	BIG
 Sly	TS421	https://solgenomics.net/ftp/genomes/TGG/genome/TS421.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/011/SRR15243711/SRR15243711_subreads.fastq.gz	PIM
 Sly	TS22	https://solgenomics.net/ftp/genomes/TGG/genome/TS22.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/008/SRR15243708/SRR15243708_subreads.fastq.gz	PIM
 Sly	TS222	https://solgenomics.net/ftp/genomes/TGG/genome/TS222.fasta.gz	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR152/019/SRR15243719/SRR15243719_subreads.fastq.gz	PIM
