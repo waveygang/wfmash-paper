@@ -128,19 +128,19 @@ rule dv_prep:
     input:
         ref=lambda wildcards: "fasta/{species}/{ref}.fa.gz".format(species=wildcards.species, ref=config["references"][wildcards.species][0])
     output:
-        fasta="results/03.variants/dv/{species}/{ref}.fa",
-        fai="results/03.variants/dv/{species}/{ref}.fai"
+        fasta="results/02.reads_mapping/{species}/{ref}.fa",
+        fai="results/02.reads_mapping/{species}/{ref}.fa.fai"
     threads: 2
     params:
     shell:
         """
         zcat {input.ref} > {output.fasta}
-        samtools index {output.fasta}
+        samtools faidx {output.fasta}
         """
 
 rule dv:
     input:
-        ref=lambda wildcards: "results/03.variants/dv/{species}/{ref}.fa".format(species=wildcards.species, ref=config["references"][wildcards.species][0]),
+        ref=lambda wildcards: "results/02.reads_mapping/{species}/{ref}.fa".format(species=wildcards.species, ref=config["references"][wildcards.species][0]),
         bam=ancient("results/02.reads_mapping/{species}/{sample}.hifi.sorted.bam")
     output:
         gvcf="results/03.variants/dv/{species}/{sample}.g.vcf.gz",
@@ -154,7 +154,7 @@ rule dv:
         """
         sample={wildcards.sample}
         REF_NAME=$(basename {input.ref})
-        singularity exec -B {params.indir}:/input -B {params.outdir}:/output {params.sif} /bin/bash -c "/opt/deepvariant/bin/run_deepvariant --model_type PACBIO --ref /input/${{REF_NAME}} --reads /input/{wildcards.sample}.hifi.sorted.bam --output_vcf=/output/{wildcards.sample}.vcf.gz --output_gvcf=/output/{wildcards.sample}.g.vcf.gz --intermediate_results_dir=/output/{wildcards.sample}_tmp --num_shards={threads} --sample_name={wildcards.sample}
+        singularity exec -B {params.indir}:/input -B {params.outdir}:/output {params.sif} /bin/bash -c "/opt/deepvariant/bin/run_deepvariant --model_type PACBIO --ref /input/${{REF_NAME}} --reads /input/{wildcards.sample}.hifi.sorted.bam --output_vcf=/output/{wildcards.sample}.vcf.gz --output_gvcf=/output/{wildcards.sample}.g.vcf.gz --intermediate_results_dir=/output/{wildcards.sample}_tmp --num_shards={threads} --sample_name={wildcards.sample}"
         rm -rf {params.outdir}/{wildcards.sample}_tmp
         """
 
@@ -164,44 +164,53 @@ rule pafcall:
         query=lambda wildcards: "fasta/{species}/{sample}.fa.gz".format(species=wildcards.species, sample=wildcards.sample),
         paf="results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.paf"
     output:
-        vcf="results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.all_variants.vcf.gz"
+        sv="results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.all_variants.filter.svs.vcf.gz",
+        small="results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.all_variants.filter.short.vcf.gz",
+        raw="results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.all_variants.raw.vcf.gz",
+        site=temp("results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.SiteDepth.gz"),
+        bed="results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.depth_eq1.bed",
+        paf="results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.filter.50kb.paf",
+        maf=temp("results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.filter.50kb.maf"),
+        remaf="results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.filter.50kb.rename.maf"
     params:
-        paf="results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.filter.50kb.paf"
+        prefix="results/01.wga/{species}/{species}_{sample}_{aligner}_{params}",
+        pandepth=config["pandepth"],
+        wgatools=config["wgatools"]
     threads: 4
     shell:
         """
-        wgatools filter -p paf -i {input.paf} -r 50000 |sort -k1,1V -k3,3n > {params.paf}
+        {params.wgatools} filter -f paf -a 50000 {input.paf}|sort -k1,1V -k3,3n > {output.paf}
 
-        pandepth -i ./${sample}_${name}.filter.50kb.paf -a -o ${sample}_${name} 
-        zcat ${sample}_${name}.SiteDepth.gz|awk '$3>1'|awk '{print $1"\t"$2"\t"$2+1}'|bedtools merge -d 1 > ${sample}_${name}_depth_lt1.bed
-        zcat ${sample}_${name}.SiteDepth.gz|awk '$3==1'|awk '{print $1"\t"$2"\t"$2+1}'|bedtools merge -d 1 > ${sample}_${name}_depth_eq1.bed
-        zcat ${sample}_${name}.SiteDepth.gz|awk '$3<1'|awk '{print $1"\t"$2"\t"$2+1}'|bedtools merge -d 1 > ${sample}_${name}_depth_ls1.bed
+        {params.pandepth} -i {output.paf} -a -o {params.prefix}
+        zcat {output.site}|awk '$3<=1'|awk '{{print $1"\\t"$2"\\t"$2+1}}'|bedtools merge -d 1 > {output.bed}
         
-        wgatools paf2maf -g {input.ref} -q {input.query} ${sample}_${name}.filter.50kb.paf > ${sample}_${name}.filter.50kb.maf
-        wgatools rename --prefixs "{wildcards.ref}#1#,{wildcardssample}#1#" ${sample}_${name}.filter.50kb.maf > ${sample}_${name}.filter.50kb.rename.maf
-        wgatools mi ${sample}_${name}.filter.50kb.rename.maf
-        wgatools call -s -l 1 -n ${sample}_${name} ${sample}_${name}.filter.50kb.rename.maf|sed "s/Col-CC#1#//g"|bgzip -@ 12 -c > ${sample}_${name}.vcf.gz
-        bcftools view -T ^${sample}_${name}_depth_lt1.bed -O z -o ${sample}_${name}.filter.vcf.gz ${sample}_${name}.vcf.gz
-        rm ${sample}_${name}.SiteDepth.gz
-        rm ${sample}_${name}.filter.50kb.rename.maf ${sample}_${name}.filter.50kb.maf
-        bgzip -@ {threads} ${sample}_${name}.filter.50kb.paf
-        """
-    
+        {params.wgatools} paf2maf -g {input.ref} -q {input.query} {output.paf} > {output.maf}
 
+        REF_NAME=$(basename {input.ref} .fa.gz)
+        {params.wgatools} rename --prefixs "${{REF_NAME}}#1#,{wildcards.sample}#1#" {output.maf} > {output.remaf}
+        {params.wgatools} mi {output.remaf}
+        {params.wgatools} call -s -l 1 -n {wildcards.sample} {output.remaf}|sed "s/${{REF_NAME}}#1#//g"|bgzip -@ {threads} -c > {output.raw}
+        bcftools view -T {output.bed} {output.raw}|bcftools view -i 'SVLEN>=50' -O z -o {output.sv} 
+        bcftools view -T {output.bed} {output.raw}|bcftools view -e 'SVLEN>=50' -O z -o {output.small} 
+        
+        """
 
 rule sv_genotype:
     input:
         ref=lambda wildcards: "fasta/{species}/{ref}.fa.gz".format(species=wildcards.species, ref=config["references"][wildcards.species][0]),
         bam=lambda wildcards: "results/02.reads_mapping/{species}/{sample}.hifi.sorted.bam".format(species=wildcards.species, sample=wildcards.sample),
-        vcf=rules.pafcall.output.vcf
+        vcf=rules.pafcall.output.sv
     output:
         vcf="results/03.variants/SVs/{species}/{species}_{sample}_{aligner}_{params}.cutesv.support.vcf.gz"
     threads: 12
     params:    
-        vcf="results/03.variants/SVs/{species}/{species}_{sample}_{aligner}_{params}.cutesv.support.vcf"
+        vcf="results/03.variants/SVs/{species}/{species}_{sample}_{aligner}_{params}.cutesv.support.vcf",
+        tmp="results/03.variants/SVs/{species}/{species}_{sample}_{aligner}_{params}_tmp"
     shell:
         """
+        mkdir -p {params.tmp}
         cuteSV {input.bam} {input.ref} {params.vcf} {params.tmp} -s 1 --genotype -mi 500 -md 500 --min_mapq 0 --max_cluster_bias_INS 1000 --diff_ratio_merging_INS 0.9 --max_cluster_bias_DEL 1000 --diff_ratio_merging_DEL 0.5 --min_size 50 -Ivcf {input.vcf}
         bgzip -@ {threads} {params.vcf}
+        rm -rf {params.tmp}
         """
 
