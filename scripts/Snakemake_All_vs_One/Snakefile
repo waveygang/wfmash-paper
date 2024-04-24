@@ -107,10 +107,11 @@ def generate_all_inputs():
         for aligner in aligners:
             for sample in config['queries'][species]:
                 inputs.append(f"results/02.reads_mapping/{species}/{sample}.hifi.sorted.bam")
-                inputs.append(f"results/03.variants/dv/{species}/{sample}.vcf.gz")
+                #inputs.append(f"results/03.variants/dv/{species}/{sample}.vcf.gz")
                 params = aligners[aligner]  # Parameter abbreviation from config
                 inputs.append(f"results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.paf")
-                #inputs.append(f"results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.all_variants.vcf.gz")
+                inputs.append(f"results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.all_variants.filter.svs.vcf.gz")
+                inputs.append(f"results/03.variants/SVs/{species}/{species}_{sample}_{aligner}_{params}.cutesv.support.vcf.gz")
     return inputs
 
 rule all:
