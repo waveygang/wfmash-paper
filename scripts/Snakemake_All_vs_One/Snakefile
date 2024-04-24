@@ -85,13 +85,19 @@ def untangle_parameters(aligner, abbreviation):
 
 
 # Example usage with multiple metadata files
-metadata_files = ['Athaliana.metadata.tsv', 'Stuberosum.metadata.tsv']
+metadata_files = ['species.metadata.tsv']
 aligner_parameters_file = 'aligner_parameters.tsv'
 
 # Read the metadata from multiple files and aligner parameters
 config = read_metadata(metadata_files)
 config['aligners'] = read_aligner_parameters(aligner_parameters_file)
 
+
+# changed based on your cluster
+config['dv']="/ebio/abt6_projects7/small_projects/zbao/software/DeepVariant/dv-v1.6.0.sif"
+wkdir="/ebio/abt6_projects/AtGraph/tmp/wfmash/Snakemake-workflow"
+config['pandepth']="~/software/PanDepth/bin/pandepth"
+config['wgatools']="~/software/wgatools/wgatools"
 
 include: "rules/all-to-one.smk"
 
@@ -100,8 +106,11 @@ def generate_all_inputs():
     for species, aligners in config['aligners'].items():
         for aligner in aligners:
             for sample in config['queries'][species]:
+                inputs.append(f"results/02.reads_mapping/{species}/{sample}.hifi.sorted.bam")
+                inputs.append(f"results/03.variants/dv/{species}/{sample}.vcf.gz")
                 params = aligners[aligner]  # Parameter abbreviation from config
                 inputs.append(f"results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.paf")
+                #inputs.append(f"results/01.wga/{species}/{species}_{sample}_{aligner}_{params}.all_variants.vcf.gz")
     return inputs
 
 rule all:

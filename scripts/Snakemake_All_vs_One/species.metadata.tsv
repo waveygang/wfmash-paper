@@ -2,9 +2,5 @@ species	sample	type	ploid
 Athaliana	Col-CC	ref	haploid
 Athaliana	Ler-0	query	haploid
 Athaliana	Cvi-0	query	haploid
-Stuberosum	DM	ref	haploid
-Stuberosum	RH	query	haploid
 Slycopersicum	SL5	ref	haploid
-Slycopersicum	PP	query	haploid
-Hsapiens	CHM13	ref	haploid
-Hsapiens	HG002	query	diploid
+Slycopersicum	TS421	query	haploid
