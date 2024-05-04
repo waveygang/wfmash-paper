@@ -33,17 +33,11 @@ done
 # Get script's directory
 DIR_SCRIPT=$( cd -- "$(dirname -- "$(readlink -f "${BASH_SOURCE[0]}" )" )" &> /dev/null && pwd )
 
-# Extract unique query and target names
+echo "Extract unique query and target names."
 QUERY_TARGET_PAIRS=$(cut -f 1,6 "$PATH_PAF" | sort -u)
 
 # Calculate total number of pairs
 NUM_PAIRS=$(echo "$QUERY_TARGET_PAIRS" | wc -l)
-
-# Feature-level report
-PATH_FEATURE_TSV=$OUTPUT_PREFIX.report.features.tsv
-
-# Genome-level report
-PATH_GENOME_TSV=$OUTPUT_PREFIX.report.genomes.tsv
 
 process_pair() {
     local query="$1"
@@ -92,12 +86,15 @@ process_pair() {
 }
 export -f process_pair
 
+# Feature-level report
+PATH_FEATURE_TSV=$OUTPUT_PREFIX.report.features.tsv
+
 # Put the header into the feature-level report file
 feature_level_report > "$PATH_FEATURE_TSV"
 
 # Execute processing in parallel
 JOBLOG="$OUTPUT_PREFIX.parallel.log" # --progress creates issues with sbatch (sh: line 1: /dev/tty: No such device or address)
-echo "Processing $NUM_PAIRS query-target pairs in parallel using $NUM_THREADS threads. The log is stored in $JOBLOG."
+echo "Processing features for $NUM_PAIRS query-target pairs in parallel using $NUM_THREADS threads. The log is stored in $JOBLOG."
 
 echo "$QUERY_TARGET_PAIRS" | parallel --no-notice --joblog "$JOBLOG" --colsep $'\t' -j "$NUM_THREADS" process_pair {1} {2} "$DIR_TEMP_STUFF" "$PATH_PAF" "$PATH_BED" "$MAX_INDEL_SIZE" "$NUM_THREADS" "$OUTPUT_PREFIX" "$PATH_FEATURE_TSV" >> "$PATH_FEATURE_TSV"
 
@@ -108,9 +105,11 @@ generate_genome_report() {
     local PATH_FEATURE_TSV="$4"
     
     local NUM_FEATURES_QUERY=$(grep -P "^$query\t" "$PATH_BED" | wc -l)
+    local LEN_FEATURES_QUERY=$(grep -P "^$query\t" "$PATH_BED" | awk 'BEGIN{sum=0}{sum+=+$3-$2}END{print(sum)}')
     local NUM_FEATURES_TARGET=$(grep -P "^$target\t" "$PATH_BED" | wc -l)
+    local LEN_FEATURES_TARGET=$(grep -P "^$target\t" "$PATH_BED" | awk 'BEGIN{sum=0}{sum+=$3-$2}END{print(sum)}')
 
-    awk -v q="$query" -v t="$target" -v nq="$NUM_FEATURES_QUERY" -v nt="$NUM_FEATURES_TARGET" 'BEGIN {OFS="\t"} 
+    awk -v q="$query" -v t="$target" -v nq="$NUM_FEATURES_QUERY" -v lq=$LEN_FEATURES_QUERY -v nt="$NUM_FEATURES_TARGET" -v lt=$LEN_FEATURES_TARGET 'BEGIN {OFS="\t"} 
         $2 == q && $6 == t {
             key = $2 FS $6; # Combine query and target as a unique key
             count[key]++;
@@ -121,17 +120,53 @@ generate_genome_report() {
             indels_in_target[key] += $13;
             ignored_bases_in_query[key] += $14;
             ignored_bases_in_target[key] += $15;
+            query_features_len[key] += $4 - $3;
+            target_features_len[key] += $8 - $7;
         }
         END {
             for (k in count) {
                 split(k, keys, FS); # Split the key back into query and target
-                print keys[1], nq, keys[2], nt, count[k], aligned[k], not_aligned_in_query[k], not_aligned_in_target[k], indels_in_query[k], indels_in_target[k], ignored_bases_in_query[k], ignored_bases_in_target[k];
+                print keys[1], keys[2], nq,  nt, count[k], lq, lt, query_features_len[key], target_features_len[key], aligned[k], not_aligned_in_query[k], not_aligned_in_target[k], indels_in_query[k], indels_in_target[k], ignored_bases_in_query[k], ignored_bases_in_target[k], (aligned[k]+indels_in_query[k]+ignored_bases_in_query[k])/lq, (aligned[k]+indels_in_target[k]+ignored_bases_in_target[k])/lt;
             }
         }' "$PATH_FEATURE_TSV"
 }
 export -f generate_genome_report
 
-# generate genome-level report
-echo "query num.features.in.query target  num.feature.in.target num.features.in.common aligned.bases not.aligned.in.query.bp not.aligned.in.target.bp indels.in.query.bp indels.in.target.bp ignored.in.query.bp ignored.in.target.bp" | tr ' ' '\t' > "$PATH_GENOME_TSV"
+# Genome-level report
+PATH_GENOME_TSV=$OUTPUT_PREFIX.report.genomes.tsv
+
+# Generate genome-level report
+echo "Generate genome-level report for $NUM_PAIRS query-target pairs in parallel using $NUM_THREADS threads."
+
+echo "query target num.features.in.query num.feature.in.target num.features.in.common len.features.in.query len.feature.in.target len.common.features.in.query len.common.features.in.target aligned.bases not.aligned.in.query.bp not.aligned.in.target.bp indels.in.query.bp indels.in.target.bp ignored.in.query.bp ignored.in.target.bp feature.ratio.in.query feature.ration.in.target" | tr ' ' '\t' > "$PATH_GENOME_TSV"
 
 echo "$QUERY_TARGET_PAIRS" | parallel --colsep $'\t' -j "$NUM_THREADS" generate_genome_report {1} {2} "$PATH_BED" "$PATH_FEATURE_TSV" >> "$PATH_GENOME_TSV"
+
+# # Check Pangenome Sequence Naming (PanSN)
+# pansn_not_respected=false
+# while IFS= read -r line; do
+#   if [[ ! $line =~ ^([^#]+#)+[^#]+$ ]]; then
+#     pansn_not_respected=$line
+#     break
+#   fi
+# done < <(echo "$QUERY_TARGET_PAIRS" | tr '\t' '\n' | sort | uniq)
+
+# if [ "$pansn_not_respected" == "false" ]; then
+#     # Genome-level report by sample
+#     PATH_GENOME_BY_SAMPLE_TSV=$OUTPUT_PREFIX.report.genomes.by-sample.tsv
+
+#     # Generate genome-level report by sample
+#     echo "Generate genome-level report by sample in parallel using $NUM_THREADS threads."
+  
+#     echo "query num.features.in.query target  num.feature.in.target num.features.in.common len.common.features.in.query len.common.features.in.target aligned.bases not.aligned.in.query.bp not.aligned.in.target.bp indels.in.query.bp indels.in.target.bp ignored.in.query.bp ignored.in.target.bp" | tr ' ' '\t' > "$PATH_GENOME_BY_SAMPLE_TSV"
+
+#     awk 'BEGIN {FS=OFS="\t"} 
+#         {
+#             gsub(/#.*/, "", $2); # Remove everything after # in the 2nd column
+#             gsub(/#.*/, "", $6); # Remove everything after # in the 6th column
+#             print $0; # Print the modified line
+#         }' "$PATH_FEATURE_TSV" > x.tsv
+
+#     QUERY_TARGET_PAIRS_BY_SAMPLE=$(cut -f 2,6 "x.tsv" | sort -u)
+#     echo "$QUERY_TARGET_PAIRS_BY_SAMPLE" | parallel --colsep $'\t' -j "$NUM_THREADS" generate_genome_report {1} {2} "$PATH_BED" "x.tsv" >> "$PATH_GENOME_BY_SAMPLE_TSV"
+# fi
