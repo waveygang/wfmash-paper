@@ -146,6 +146,33 @@ for ((i = 1; i < NUM_FILES + 1; i++)); do
         FASTA2="${FASTA_FILES[j]}"
 
         if [[ -f "$FASTA1" && -f "$FASTA2" ]]; then
+          c=20k
+          k=19
+          for filter in "no1to1" "yes1to1"; do
+            for p in 95 90 80 70; do
+              for s in 10k 5k; do
+                for l in 0 5s; do
+                  for hg in 30 0; do
+                    echo $FASTA1 $FASTA2 $p $s $l $c $k $hg $filter
+                  done
+                done
+              done
+            done
+          done
+        fi
+    done
+done | tr ' ' '\t' > $DIR_BASE/$PANGENOME.combinations.tsv
+
+mkdir -p $DIR_BASE/alignments/$PANGENOME
+cd $DIR_BASE/alignments/$PANGENOME
+sbatch -c 48 -p allnodes --array=1-$(wc -l < $DIR_BASE/$PANGENOME.combinations.tsv)%48 $DIR_BASE/scripts/job-array.wfmash.sh $WFMASH $DIR_BASE/athaliana.combinations.tsv $DIR_BASE/alignments/$PANGENOME $THREADS
+
+for ((i = 1; i < NUM_FILES + 1; i++)); do
+    for ((j = 1; j < i; j++)); do
+        FASTA1="${FASTA_FILES[i]}"
+        FASTA2="${FASTA_FILES[j]}"
+
+        if [[ -f "$FASTA1" && -f "$FASTA2" ]]; then
           NAME1=$(basename $FASTA1 .fasta)
           NAME2=$(basename $FASTA2 .fasta)
           echo $NAME1 $NAME2
@@ -156,25 +183,29 @@ for ((i = 1; i < NUM_FILES + 1; i++)); do
           cd $DIR_OUTPUT_MM2
           sbatch -c $THREADS -p allnodes --job-name "$NAME1-vs-$NAME2-minimap2" --wrap "hostname; cd /scratch; \time -v minimap2 -x asm20 -c --eqx --secondary=no -t $THREADS $FASTA2 $FASTA1 > $NAME1-vs-$NAME2.minimap2.asm20.paf; mv $NAME1-vs-$NAME2.minimap2.asm20.paf $DIR_OUTPUT_MM2"
 
-          # wfmash
-          c=20k
-          k=19
-          for p in 95 90 80 70; do
-            for s in 10k 5k; do
-              for hg in 30 0; do
-                DIR_OUTPUT_WF=$DIR_BASE/alignments/$PANGENOME/wfmash.p${p}.s${s}.c${c}.k${k}.hg${hg}/$NAME1-vs-$NAME2
-                mkdir -p $DIR_OUTPUT_WF
-                cd $DIR_OUTPUT_WF
-                sbatch -c $THREADS -p allnodes --job-name "$NAME1-vs-$NAME2-wfmash" --wrap "hostname; cd /scratch; \time -v $WFMASH -p $p -s $s -c $c -k $k --hg-filter-ani-diff $hg -t $THREADS $FASTA2 $FASTA1 > $NAME1-vs-$NAME2.wfmash.p${p}s${s}c${c}k${k}.hg${hg}.paf; mv $NAME1-vs-$NAME2.wfmash.p${p}s${s}c${c}k${k}.hg${hg}.paf $DIR_OUTPUT_WF"
-              done
-            done
-          done
+          # # wfmash
+          # c=20k
+          # k=19
+          # for p in 95 90 80 70; do
+          #   for s in 10k 5k; do
+          #     for hg in 30 0; do
+          #       DIR_OUTPUT_WF=$DIR_BASE/alignments/$PANGENOME/wfmash.p${p}.s${s}.c${c}.k${k}.hg${hg}/$NAME1-vs-$NAME2
+          #       mkdir -p $DIR_OUTPUT_WF
+          #       cd $DIR_OUTPUT_WF
+          #       sbatch -c $THREADS -p allnodes --job-name "$NAME1-vs-$NAME2-wfmash" --wrap "hostname; cd /scratch; \time -v $WFMASH -p $p -s $s -c $c -k $k --hg-filter-ani-diff $hg -t $THREADS $FASTA2 $FASTA1 > $NAME1-vs-$NAME2.wfmash.p${p}s${s}c${c}k${k}.hg${hg}.paf; mv $NAME1-vs-$NAME2.wfmash.p${p}s${s}c${c}k${k}.hg${hg}.paf $DIR_OUTPUT_WF"
+          #     done
+          #   done
+          # done
         fi
     done
 done
 
+
+
+
 # Get runtime and memory
-cat $DIR_BASE/alignments/$PANGENOME/*/*/slurm*.out | python3 /lizardfs/guarracino/wfmash-paper/scripts/log2info.py > $DIR_BASE/alignments/$PANGENOME/$PANGENOME.runtime+memory.tsv
+#UPDATE log2info TO MANAGE ALSO -l and [yes|no]1to1
+(cat $DIR_BASE/alignments/$PANGENOME/slurm*; cat $DIR_BASE/alignments/$PANGENOME/*/*/slurm*.out) | python3 /lizardfs/guarracino/wfmash-paper/scripts/log2info.py > $DIR_BASE/alignments/$PANGENOME/$PANGENOME.runtime+memory.tsv
 
 ls $DIR_BASE/alignments/$PANGENOME | grep '.tsv' -v | while read TOOL; do
   ls $DIR_BASE/alignments/$PANGENOME/$TOOL/*/*paf | while read PAF; do
