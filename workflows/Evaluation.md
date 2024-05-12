@@ -147,13 +147,15 @@ for ((i = 1; i < NUM_FILES + 1; i++)); do
 
         if [[ -f "$FASTA1" && -f "$FASTA2" ]]; then
           c=20k
-          k=19
-          for filter in "no1to1" "yes1to1"; do
-            for p in 95 90 80 70; do
-              for s in 10k 5k; do
-                for l in 0 5s; do
-                  for hg in 30 0; do
-                    echo $FASTA1 $FASTA2 $p $s $l $c $k $hg $filter
+          for k in 13 17; do
+          #for k in 13 17 19; do
+            for filter in "no1to1" "yes1to1"; do
+              for p in 95 90 80 70; do
+                for s in 10k 5k; do
+                  for l in 0 5s; do
+                    for hg in 30 0; do
+                      echo $FASTA1 $FASTA2 $p $s $l $c $k $hg $filter
+                    done
                   done
                 done
               done
@@ -207,7 +209,7 @@ done
 #UPDATE log2info TO MANAGE ALSO -l and [yes|no]1to1
 (cat $DIR_BASE/alignments/$PANGENOME/slurm*; cat $DIR_BASE/alignments/$PANGENOME/*/*/slurm*.out) | python3 /lizardfs/guarracino/wfmash-paper/scripts/log2info.py > $DIR_BASE/alignments/$PANGENOME/$PANGENOME.runtime+memory.tsv
 
-ls $DIR_BASE/alignments/$PANGENOME | grep '.tsv' -v | while read TOOL; do
+ls $DIR_BASE/alignments/$PANGENOME | grep '.tsv' -v | grep '.out' -v | while read TOOL; do
   ls $DIR_BASE/alignments/$PANGENOME/$TOOL/*/*paf | while read PAF; do
     NAME=$(basename $PAF .paf)
 
