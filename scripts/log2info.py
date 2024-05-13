@@ -24,11 +24,16 @@ for line in sys.stdin:
             tool = 'minimap2.xasm20.c.eqx.secondary-no'
         elif 'wfmash' in line:
             tool = 'wfmash'
-            param_tuples = re.findall(r"-(p|s|c|k)\s+(\S+)", line)
+            param_tuples = re.findall(r"-(p|s|l|c|k)\s+(\S+)", line)
             wfmash_params = ".".join([f"{p}{v}" for p, v in param_tuples])
             hg_filter_ani_diff = re.search(r"--hg-filter-ani-diff\s+(\d+)", line)
             if hg_filter_ani_diff:
                 wfmash_params += f".hg{hg_filter_ani_diff.group(1)}"
+            one_to_one_filter = re.search(r"--one-to-one", line)
+            if one_to_one_filter:
+                wfmash_params += f".yes1to1"
+            else:
+                wfmash_params += f".no1to1"
             tool = f"wfmash.{wfmash_params}"
         else:
             reject_result = True

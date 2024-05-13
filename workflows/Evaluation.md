@@ -153,7 +153,7 @@ for ((i = 1; i < NUM_FILES + 1; i++)); do
               for p in 95 90 80 70; do
                 for s in 10k 5k; do
                   for l in 0 5s; do
-                    for hg in 30 0; do
+                    for hg in 0; do
                       echo $FASTA1 $FASTA2 $p $s $l $c $k $hg $filter
                     done
                   done
@@ -167,7 +167,7 @@ done | tr ' ' '\t' > $DIR_BASE/$PANGENOME.combinations.tsv
 
 mkdir -p $DIR_BASE/alignments/$PANGENOME
 cd $DIR_BASE/alignments/$PANGENOME
-sbatch -c 48 -p allnodes --array=1-$(wc -l < $DIR_BASE/$PANGENOME.combinations.tsv)%48 $DIR_BASE/scripts/job-array.wfmash.sh $WFMASH $DIR_BASE/athaliana.combinations.tsv $DIR_BASE/alignments/$PANGENOME $THREADS
+sbatch -c 48 -p allnodes -x octopus03,octopus05 --array=1-$(wc -l < $DIR_BASE/$PANGENOME.combinations.tsv)%48 $DIR_BASE/scripts/job-array.wfmash.sh $WFMASH $DIR_BASE/athaliana.combinations.tsv $DIR_BASE/alignments/$PANGENOME $THREADS
 
 for ((i = 1; i < NUM_FILES + 1; i++)); do
     for ((j = 1; j < i; j++)); do
