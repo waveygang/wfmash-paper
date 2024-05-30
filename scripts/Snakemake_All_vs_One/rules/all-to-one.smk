@@ -42,6 +42,8 @@ rule nucmer:
     shell:
         """
         nucmer --maxmatch {params.par} -p {params.prefix} -t {threads} {input.ref} {input.query}
+        delta-filter -m -i 90 -l 1000 {params.prefix}.delta > {params.prefix}_m_i90_l1k.delta
+        paftools.js delta2paf {params.prefix}_m_i90_l1k.delta > {output.paf}
         """
 
 rule wfmash:
