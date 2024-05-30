@@ -147,14 +147,15 @@ for ((i = 1; i < NUM_FILES + 1; i++)); do
 
         if [[ -f "$FASTA1" && -f "$FASTA2" ]]; then
           c=20k
-          for k in 13 17; do
-          #for k in 13 17 19; do
-            for filter in "no1to1" "yes1to1"; do
-              for p in 95 90 80 70; do
-                for s in 10k 5k; do
-                  for l in 0 5s; do
-                    for hg in 0; do
-                      echo $FASTA1 $FASTA2 $p $s $l $c $k $hg $filter
+          for w in auto 200 300; do
+            for k in 13 17 19; do
+              for filter in "no1to1" "yes1to1"; do
+                for p in 95 90 80 70; do
+                  for s in 10k 5k; do
+                    for l in 0 5s; do
+                      for hg in 0; do
+                        echo $FASTA1 $FASTA2 $p $s $l $c $k $hg $filter $w
+                      done
                     done
                   done
                 done
@@ -167,7 +168,7 @@ done | tr ' ' '\t' > $DIR_BASE/$PANGENOME.combinations.tsv
 
 mkdir -p $DIR_BASE/alignments/$PANGENOME
 cd $DIR_BASE/alignments/$PANGENOME
-sbatch -c 48 -p allnodes -x octopus03,octopus05 --array=1-$(wc -l < $DIR_BASE/$PANGENOME.combinations.tsv)%48 $DIR_BASE/scripts/job-array.wfmash.sh $WFMASH $DIR_BASE/athaliana.combinations.tsv $DIR_BASE/alignments/$PANGENOME $THREADS
+sbatch -c 48 -p allnodes -x octopus02,octopus03,octopus05 --array=1-$(wc -l < $DIR_BASE/$PANGENOME.combinations.tsv)%48 $DIR_BASE/scripts/job-array.wfmash.sh $WFMASH $DIR_BASE/$PANGENOME.combinations.tsv $DIR_BASE/alignments/$PANGENOME $THREADS
 
 for ((i = 1; i < NUM_FILES + 1; i++)); do
     for ((j = 1; j < i; j++)); do
@@ -184,6 +185,16 @@ for ((i = 1; i < NUM_FILES + 1; i++)); do
           mkdir -p $DIR_OUTPUT_MM2
           cd $DIR_OUTPUT_MM2
           sbatch -c $THREADS -p allnodes --job-name "$NAME1-vs-$NAME2-minimap2" --wrap "hostname; cd /scratch; \time -v minimap2 -x asm20 -c --eqx --secondary=no -t $THREADS $FASTA2 $FASTA1 > $NAME1-vs-$NAME2.minimap2.asm20.paf; mv $NAME1-vs-$NAME2.minimap2.asm20.paf $DIR_OUTPUT_MM2"
+
+          DIR_OUTPUT_MM2=$DIR_BASE/alignments/$PANGENOME/minimap2.xasm10.c.eqx.secondary-no/$NAME1-vs-$NAME2
+          mkdir -p $DIR_OUTPUT_MM2
+          cd $DIR_OUTPUT_MM2
+          sbatch -c $THREADS -p allnodes --job-name "$NAME1-vs-$NAME2-minimap2" --wrap "hostname; cd /scratch; \time -v minimap2 -x asm10 -c --eqx --secondary=no -t $THREADS $FASTA2 $FASTA1 > $NAME1-vs-$NAME2.minimap2.asm10.paf; mv $NAME1-vs-$NAME2.minimap2.asm10.paf $DIR_OUTPUT_MM2"
+
+          DIR_OUTPUT_MM2=$DIR_BASE/alignments/$PANGENOME/minimap2.xasm5.c.eqx.secondary-no/$NAME1-vs-$NAME2
+          mkdir -p $DIR_OUTPUT_MM2
+          cd $DIR_OUTPUT_MM2
+          sbatch -c $THREADS -p allnodes --job-name "$NAME1-vs-$NAME2-minimap2" --wrap "hostname; cd /scratch; \time -v minimap2 -x asm5 -c --eqx --secondary=no -t $THREADS $FASTA2 $FASTA1 > $NAME1-vs-$NAME2.minimap2.asm5.paf; mv $NAME1-vs-$NAME2.minimap2.asm5.paf $DIR_OUTPUT_MM2"
 
           # # wfmash
           # c=20k
@@ -203,19 +214,38 @@ for ((i = 1; i < NUM_FILES + 1; i++)); do
 done
 
 
-
-
 # Get runtime and memory
-#UPDATE log2info TO MANAGE ALSO -l and [yes|no]1to1
-(cat $DIR_BASE/alignments/$PANGENOME/slurm*; cat $DIR_BASE/alignments/$PANGENOME/*/*/slurm*.out) | python3 /lizardfs/guarracino/wfmash-paper/scripts/log2info.py > $DIR_BASE/alignments/$PANGENOME/$PANGENOME.runtime+memory.tsv
+find "$DIR_BASE/alignments/$PANGENOME/" -name 'slurm-*.out' -print0 | xargs -0 cat | python3 /lizardfs/guarracino/wfmash-paper/scripts/log2info.py > $DIR_BASE/alignments/$PANGENOME/$PANGENOME.runtime+memory.tsv
 
-ls $DIR_BASE/alignments/$PANGENOME | grep '.tsv' -v | grep '.out' -v | while read TOOL; do
+find "$DIR_BASE/alignments/$PANGENOME" -mindepth 1 -maxdepth 1 -type d  | rev | cut -f 1 -d '/' | rev | while read TOOL; do
   ls $DIR_BASE/alignments/$PANGENOME/$TOOL/*/*paf | while read PAF; do
     NAME=$(basename $PAF .paf)
 
-    #NUM_ALIGNMENT=$(cat $PAF | wc -l)
-    AVG_ALIGNMENT_LEN=$(awk '{lenq+=($4-$3); lent+=($9-$8); n+=1} END {printf "%.0f\n", ((lenq + lent) / 2)/n}' $PAF)
+    NUM_ALIGNMENTS=$(cat $PAF | wc -l)
+    #AVG_ALIGNMENT_LEN=$(awk '{lenq+=($4-$3); lent+=($9-$8); n+=1} END {printf "%.0f\n", ((lenq + lent) / 2)/n}' $PAF)
     #TOTAL_ALIGNMENT_LEN=$(awk '{lenq+=($4-$3); lent+=($9-$8); n+=1} END {printf "%.0f\n", lenq + lent}' $PAF)
+
+    # Extract alignment lengths and sort them in descending order
+    alignment_lengths=($(awk '{print $11}' "$PAF" | sort -nr))
+
+    # Compute the total sum of all alignment lengths
+    total_length=$(echo "${alignment_lengths[@]}" | awk '{sum=0; for (i=1; i<=NF; i++) sum += $i; print sum}')
+
+    # Calculate the N50 value
+    accumulated_length=0
+    N50_ALIGNMENT_LEN=0
+    #N90_ALIGNMENT_LEN=0
+
+    for length in "${alignment_lengths[@]}"; do
+        accumulated_length=$((accumulated_length + length))
+        if [ "$accumulated_length" -ge $((total_length / 2)) ] && [ "$N50_ALIGNMENT_LEN" -eq 0 ]; then
+            N50_ALIGNMENT_LEN=$length
+        fi
+        # if [ "$accumulated_length" -ge $((total_length * 9 / 10)) ]; then
+        #     N90_ALIGNMENT_LEN=$length
+        #     break
+        # fi
+    done
 
     QUERY_COVERED=$(join \
       <(cut -f 1,2 $PAF | sort -V | uniq) \
@@ -245,9 +275,10 @@ ls $DIR_BASE/alignments/$PANGENOME | grep '.tsv' -v | grep '.out' -v | while rea
           }
       }' | sort -V | uniq) | grep '^0' -v | awk '{ sum_len += $2; sum_covered += $3 } END { print(sum_covered / sum_len)}')
 
-    echo $TOOL $NAME $AVG_ALIGNMENT_LEN $QUERY_COVERED $TARGET_COVERED
+    #echo $TOOL $NAME $AVG_ALIGNMENT_LEN $QUERY_COVERED $TARGET_COVERED
+    echo $TOOL $NAME $N50_ALIGNMENT_LEN $NUM_ALIGNMENTS $QUERY_COVERED $TARGET_COVERED
   done
-done | tr ' ' '\t' > $DIR_BASE/alignments/$PANGENOME/$PANGENOME.contigs+coverage+totlen.tsv
+done | tr ' ' '\t' > $DIR_BASE/alignments/$PANGENOME/$PANGENOME.contigs+coverage+N50+numAlign.tsv
 ```
 
 Call variants from PAF files:

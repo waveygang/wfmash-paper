@@ -21,7 +21,14 @@ for line in sys.stdin:
         reject_result = True
     elif 'Command being timed' in line:
         if 'minimap2' in line:
-            tool = 'minimap2.xasm20.c.eqx.secondary-no'
+            if 'asm20' in line:
+                tool = 'minimap2.xasm20.c.eqx.secondary-no'
+            elif 'asm10' in line:
+                tool = 'minimap2.xasm10.c.eqx.secondary-no'
+            elif 'asm5' in line:
+                tool = 'minimap2.xasm5.c.eqx.secondary-no'
+            else:
+                reject_result = True
         elif 'wfmash' in line:
             tool = 'wfmash'
             param_tuples = re.findall(r"-(p|s|l|c|k)\s+(\S+)", line)
@@ -34,6 +41,11 @@ for line in sys.stdin:
                 wfmash_params += f".yes1to1"
             else:
                 wfmash_params += f".no1to1"
+            w_param = re.search(r"-w\s+(\d+)", line)
+            if w_param:
+                wfmash_params += f".w{w_param.group(1)}"
+            else:
+                wfmash_params += ".wauto"
             tool = f"wfmash.{wfmash_params}"
         else:
             reject_result = True
