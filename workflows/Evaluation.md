@@ -119,27 +119,29 @@ gunzip SL5.0.gff3.gz
 
 ### All-vs-all performance
 
+Select the pangenome:
+
 ```shell
-#########################
 PANGENOME=athaliana
 PANGENOME=tomato
-#########################
+```
 
+wfmash grid-search:
+
+```shell
 # List all fasta files in the specified directory
 FASTA_FILES=($(ls $DIR_BASE/assemblies/$PANGENOME/*fasta))
 
 # Get the number of files
 NUM_FILES=${#FASTA_FILES[@]}
 
+# Loop through the FASTA files to get only a triangular matrix of pairs
+
 # Upper triangular matrix
 # for ((i=1; i < NUM_FILES; i++)); do
 #     for ((j=i + 1; j < NUM_FILES + 1; j++)); do
-#         FASTA1="${FASTA_FILES[i]}"
-#         FASTA2="${FASTA_FILES[j]}"
 
-# Loop through the FASTA files to get only the lower triangular matrix of pairs
-# Lower matrix to have GCA_028009825.2 and SL5.0 as target assemblies
-
+# Lower matrix (to have GCA_028009825.2 and SL5.0 as target assemblies)
 for ((i = 1; i < NUM_FILES + 1; i++)); do
     for ((j = 1; j < i; j++)); do
         FASTA1="${FASTA_FILES[i]}"
@@ -169,6 +171,21 @@ done | tr ' ' '\t' > $DIR_BASE/$PANGENOME.combinations.tsv
 mkdir -p $DIR_BASE/alignments/$PANGENOME
 cd $DIR_BASE/alignments/$PANGENOME
 sbatch -c 48 -p allnodes -x octopus02,octopus03,octopus05 --array=1-$(wc -l < $DIR_BASE/$PANGENOME.combinations.tsv)%48 $DIR_BASE/scripts/job-array.wfmash.sh $WFMASH $DIR_BASE/$PANGENOME.combinations.tsv $DIR_BASE/alignments/$PANGENOME $THREADS
+```
+
+Other tools:
+
+```shell
+# For testing
+FASTA1=/lizardfs/guarracino/wfmash-paper/assemblies/athaliana/GCA_903064275.1.fasta
+FASTA2=/lizardfs/guarracino/wfmash-paper/assemblies/athaliana/GCA_028009825.2.fasta
+
+
+# List all fasta files in the specified directory
+FASTA_FILES=($(ls $DIR_BASE/assemblies/$PANGENOME/*fasta))
+
+# Get the number of files
+NUM_FILES=${#FASTA_FILES[@]}
 
 for ((i = 1; i < NUM_FILES + 1; i++)); do
     for ((j = 1; j < i; j++)); do
@@ -196,6 +213,22 @@ for ((i = 1; i < NUM_FILES + 1; i++)); do
           cd $DIR_OUTPUT_MM2
           sbatch -c $THREADS -p allnodes --job-name "$NAME1-vs-$NAME2-minimap2" --wrap "hostname; cd /scratch; \time -v minimap2 -x asm5 -c --eqx --secondary=no -t $THREADS $FASTA2 $FASTA1 > $NAME1-vs-$NAME2.minimap2.asm5.paf; mv $NAME1-vs-$NAME2.minimap2.asm5.paf $DIR_OUTPUT_MM2"
 
+
+          # nucmer
+          DIR_OUTPUT_NC=$DIR_BASE/alignments/$PANGENOME/nucmer.c500.b500.l100/$NAME1-vs-$NAME2
+          mkdir -p $DIR_OUTPUT_NC
+          cd $DIR_OUTPUT_NC
+          sbatch -c $THREADS -p allnodes --job-name "$NAME1-vs-$NAME2-nucmer" --wrap "hostname; cd /scratch; \time -v nucmer --maxmatch -c 500 -b 500 -l 100 -p $NAME1-vs-$NAME2.nucmer.c500b500l100 -t $THREADS $FASTA2 $FASTA1; delta-filter -m -i 90 -l 1000 $NAME1-vs-$NAME2.nucmer.c500b500l100.delta > $NAME1-vs-$NAME2.nucmer.c500b500l100.mi90l1k.delta; paftools.js delta2paf $NAME1-vs-$NAME2.nucmer.c500b500l100.mi90l1k.delta > $NAME1-vs-$NAME2.nucmer.c500b500l100.mi90l1k.paf; mv $NAME1-vs-$NAME2.nucmer.c500b500l100* $DIR_OUTPUT_NC"
+
+          # AnchorWave needs reference annotations
+          REFNAME=$(basename $FASTA2 .fasta)
+          if [[ -f "$DIR_BASE/annotation/$PANGENOME/$REFNAME.gff3" ]]; then
+            DIR_OUTPUT_NC=$DIR_BASE/alignments/$PANGENOME/anchorwave/$NAME1-vs-$NAME2
+            mkdir -p $DIR_OUTPUT_NC
+            cd $DIR_OUTPUT_NC
+            sbatch -c $THREADS -p allnodes --job-name "NAME1-vs-$NAME2-anchorwave" --wrap "hostname; mkdir -p /scratch/$NAME.anchorwave; cd /scratch/$NAME.anchorwave; \time -v anchorwave gff2seq -i $DIR_BASE/annotation/$PANGENOME/$REFNAME.gff3 -r $FASTA2 -o $REFNAME.filter.cds.fa; \time -v minimap2 -x splice -t $THREADS -k 12 -a -p 0.4 -N 20 $FASTA2 $REFNAME.filter.cds.fa > $REFNAME.cds.sam; \time -v minimap2 -x splice -t $THREADS -k 12 -a -p 0.4 -N 20 $FASTA $REFNAME.filter.cds.fa > $NAME.cds.sam; \time -v anchorwave genoAli -IV -t $THREADS -i $DIR_BASE/annotation/$PANGENOME/$REFNAME.gff3 -as $REFNAME.filter.cds.fa -r $FASTA2 -a $NAME.cds.sam -ar $REFNAME.cds.sam -s $FASTA -n $NAME.AnchorWave.default.anchors -o $NAME.AnchorWave.default.maf -f $NAME.AnchorWave.default.m.maf; mv /scratch/$NAME.anchorwave/* $DIR_OUTPUT_AW/; rm /scratch/$NAME.anchorwave -rf"
+          fi
+
           # # wfmash
           # c=20k
           # k=19
@@ -212,8 +245,11 @@ for ((i = 1; i < NUM_FILES + 1; i++)); do
         fi
     done
 done
+```
 
+Collect statistics:
 
+```shell
 # Get runtime and memory
 find "$DIR_BASE/alignments/$PANGENOME/" -name 'slurm-*.out' -print0 | xargs -0 cat | python3 /lizardfs/guarracino/wfmash-paper/scripts/log2info.py > $DIR_BASE/alignments/$PANGENOME/$PANGENOME.runtime+memory.tsv
 
@@ -275,7 +311,6 @@ find "$DIR_BASE/alignments/$PANGENOME" -mindepth 1 -maxdepth 1 -type d  | rev | 
           }
       }' | sort -V | uniq) | grep '^0' -v | awk '{ sum_len += $2; sum_covered += $3 } END { print(sum_covered / sum_len)}')
 
-    #echo $TOOL $NAME $AVG_ALIGNMENT_LEN $QUERY_COVERED $TARGET_COVERED
     echo $TOOL $NAME $N50_ALIGNMENT_LEN $NUM_ALIGNMENTS $QUERY_COVERED $TARGET_COVERED
   done
 done | tr ' ' '\t' > $DIR_BASE/alignments/$PANGENOME/$PANGENOME.contigs+coverage+N50+numAlign.tsv
@@ -284,8 +319,8 @@ done | tr ' ' '\t' > $DIR_BASE/alignments/$PANGENOME/$PANGENOME.contigs+coverage
 Call variants from PAF files:
 
 ```shell
-ls $DIR_BASE/alignments/$PANGENOME | grep '.tsv' -v | while read TOOL; do
-  ls $DIR_BASE/alignments/$PANGENOME/$TOOL/*/*paf | while read PAF; do
+find "$DIR_BASE/alignments/$PANGENOME" -mindepth 1 -maxdepth 1 -type d  | rev | cut -f 1 -d '/' | rev | head -n 1 | while read TOOL; do
+  ls $DIR_BASE/alignments/$PANGENOME/$TOOL/*/*paf | head -n 1 | while read PAF; do
     NAME=$(basename $PAF .paf)
     NAME12=${NAME%%.minimap2.*}
     NAME12=${NAME12%%.wfmash.*}
@@ -300,9 +335,17 @@ ls $DIR_BASE/alignments/$PANGENOME | grep '.tsv' -v | while read TOOL; do
     mkdir -p $DIR_OUTPUT
     cd $DIR_OUTPUT
 
-    sbatch -c 8 -p allnodes --job-name "paf2vcf-$NAME" --wrap "bash $DIR_BASE/scripts/paf2vcf.sh $PAF $NAME $FASTA1 $FASTA2 $PANDEPTH $DIR_OUTPUT"
+    echo sbatch -c 8 -p allnodes --job-name "paf2vcf-$NAME" --wrap "bash $DIR_BASE/scripts/paf2vcf.sh $PAF $NAME $FASTA1 $FASTA2 $PANDEPTH $DIR_OUTPUT"
   done
 done
+
+
+PAF=/lizardfs/guarracino/wfmash-paper/alignments/athaliana/wfmash.p70.s10k.l0.c20k.k19.hg0.yes1to1.w200/GCA_903064275.1-vs-GCA_028009825.2/GCA_903064275.1-vs-GCA_028009825.2.wfmash.p70s10kl0c20kk19.hg0yes1to1.w200.paf 
+NAME=GCA_903064275.1-vs-GCA_028009825.2.wfmash.p70s10kl0c20kk19.hg0yes1to1.w200
+FASTA1=/lizardfs/guarracino/wfmash-paper/assemblies/athaliana/GCA_903064275.1.fasta
+FASTA2=/lizardfs/guarracino/wfmash-paper/assemblies/athaliana/GCA_028009825.2.fasta
+PANDEPTH=/lizardfs/guarracino/git/PanDepth/bin/pandepth
+DIR_OUTPUT=/lizardfs/guarracino/wfmash-paper/variants/athaliana/wfmash.p70.s10k.l0.c20k.k19.hg0.yes1to1.w200/GCA_903064275.1-vs-GCA_028009825.2
 ```
 
 Call variants from HiFi reads:
