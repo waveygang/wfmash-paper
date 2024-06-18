@@ -177,6 +177,7 @@ Other tools:
 
 ```shell
 # For testing
+PANGENOME=athaliana
 FASTA1=/lizardfs/guarracino/wfmash-paper/assemblies/athaliana/GCA_903064275.1.fasta
 FASTA2=/lizardfs/guarracino/wfmash-paper/assemblies/athaliana/GCA_028009825.2.fasta
 
@@ -218,15 +219,15 @@ for ((i = 1; i < NUM_FILES + 1; i++)); do
           DIR_OUTPUT_NC=$DIR_BASE/alignments/$PANGENOME/nucmer.c500.b500.l100/$NAME1-vs-$NAME2
           mkdir -p $DIR_OUTPUT_NC
           cd $DIR_OUTPUT_NC
-          sbatch -c $THREADS -p allnodes --job-name "$NAME1-vs-$NAME2-nucmer" --wrap "hostname; cd /scratch; \time -v nucmer --maxmatch -c 500 -b 500 -l 100 -p $NAME1-vs-$NAME2.nucmer.c500b500l100 -t $THREADS $FASTA2 $FASTA1; delta-filter -m -i 90 -l 1000 $NAME1-vs-$NAME2.nucmer.c500b500l100.delta > $NAME1-vs-$NAME2.nucmer.c500b500l100.mi90l1k.delta; paftools.js delta2paf $NAME1-vs-$NAME2.nucmer.c500b500l100.mi90l1k.delta > $NAME1-vs-$NAME2.nucmer.c500b500l100.mi90l1k.paf; mv $NAME1-vs-$NAME2.nucmer.c500b500l100* $DIR_OUTPUT_NC"
+          sbatch -c $THREADS -p allnodes --job-name "$NAME1-vs-$NAME2-nucmer" --wrap "hostname; cd /scratch; \time -v bash $DIR_BASE/scripts/nucmer.sh $NAME1 $NAME2 $THREADS $FASTA1 $FASTA2; mv $NAME1-vs-$NAME2.nucmer.c500b500l100* $DIR_OUTPUT_NC"
 
           # AnchorWave needs reference annotations
-          REFNAME=$(basename $FASTA2 .fasta)
-          if [[ -f "$DIR_BASE/annotation/$PANGENOME/$REFNAME.gff3" ]]; then
+          ANNOTATION=$DIR_BASE/annotation/$PANGENOME/$NAME2.gff3
+          if [[ -f "$ANNOTATION" ]]; then
             DIR_OUTPUT_NC=$DIR_BASE/alignments/$PANGENOME/anchorwave/$NAME1-vs-$NAME2
             mkdir -p $DIR_OUTPUT_NC
             cd $DIR_OUTPUT_NC
-            sbatch -c $THREADS -p allnodes --job-name "NAME1-vs-$NAME2-anchorwave" --wrap "hostname; mkdir -p /scratch/$NAME.anchorwave; cd /scratch/$NAME.anchorwave; \time -v anchorwave gff2seq -i $DIR_BASE/annotation/$PANGENOME/$REFNAME.gff3 -r $FASTA2 -o $REFNAME.filter.cds.fa; \time -v minimap2 -x splice -t $THREADS -k 12 -a -p 0.4 -N 20 $FASTA2 $REFNAME.filter.cds.fa > $REFNAME.cds.sam; \time -v minimap2 -x splice -t $THREADS -k 12 -a -p 0.4 -N 20 $FASTA $REFNAME.filter.cds.fa > $NAME.cds.sam; \time -v anchorwave genoAli -IV -t $THREADS -i $DIR_BASE/annotation/$PANGENOME/$REFNAME.gff3 -as $REFNAME.filter.cds.fa -r $FASTA2 -a $NAME.cds.sam -ar $REFNAME.cds.sam -s $FASTA -n $NAME.AnchorWave.default.anchors -o $NAME.AnchorWave.default.maf -f $NAME.AnchorWave.default.m.maf; mv /scratch/$NAME.anchorwave/* $DIR_OUTPUT_AW/; rm /scratch/$NAME.anchorwave -rf"
+            sbatch -c $THREADS -p allnodes --job-name "NAME1-vs-$NAME2-anchorwave" --wrap "hostname; cd /scratch; mkdir -p /scratch/$NAME.anchorwave; cd /scratch/$NAME.anchorwave; bash $DIR_BASE/scripts/anchorwave.sh $NAME1 $NAME2 $THREADS $FASTA1 $FASTA2 $ANNOTATION; mv /scratch/$NAME.anchorwave/* $DIR_OUTPUT_AW; rm /scratch/$NAME.anchorwave -rf"
           fi
 
           # # wfmash
