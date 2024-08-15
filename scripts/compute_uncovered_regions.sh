@@ -12,7 +12,6 @@ TOTAL_GENES=$(cut -f 4 "$BED" | sort | uniq | wc -l)
 TARGET_COUNTER=0
 GENE_COUNTER=0
 
-cd /scratch
 cut -f 6 "$PAF" | cut -f 1,2 -d '#' | sort | uniq | while read TARGET; do
     ((TARGET_COUNTER++))
     echo "Processing target $TARGET_COUNTER of $TOTAL_TARGETS: $TARGET" >&2
