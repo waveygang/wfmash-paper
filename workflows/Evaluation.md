@@ -248,6 +248,13 @@ for ((i = 1; i < NUM_FILES + 1; i++)); do
 done
 ```
 
+Compress everything:
+
+```shell
+cd $DIR_BASE/alignments
+find . -type f -name "*.paf" -exec pigz -9 {} +  
+```
+
 Collect statistics:
 
 ```shell
